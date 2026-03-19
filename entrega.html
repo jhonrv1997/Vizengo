@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Registro de Entrega</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root{--primary:#2B4FFF;--accent:#FFD23F;--success:#06d6a0;--warning:#f59e0b;--danger:#ef476f;--info:#38bdf8;--purple:#8b5cf6;--bg:#f0f4ff;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--sidebar-bg:#0f1729;--sidebar-w:240px;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+        .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
+        .brand-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:2px;color:white;}
+        .brand-logo span{color:var(--accent);}
+        .brand-sub{font-size:.68rem;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+        .sidebar-section{padding:12px 20px 4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;margin:1px 10px;border-radius:8px;color:rgba(255,255,255,.55);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .2s;}
+        .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+        .nav-item.active{background:var(--primary);color:white;}
+        .nav-item i{width:18px;text-align:center;}
+        .badge-nav{background:var(--accent);color:#1a1a1a;border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;margin-left:auto;}
+        .sidebar-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;}
+        .user-info .user-name{font-size:.9rem;font-weight:600;color:white;}
+        .user-info .user-role{font-size:.72rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+        .btn-logout{margin-left:auto;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;font-size:1rem;}
+        .btn-logout:hover{color:var(--danger);}
+        .main-content{margin-left:var(--sidebar-w);flex:1;padding:28px;}
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+        .topbar h1{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:.5px;}
+        .topbar p{font-size:.85rem;color:var(--muted);margin-top:2px;}
+
+        /* Pipeline */
+        .pipeline-tracker{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;}
+        .pt-step{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:90px;}
+        .pt-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid var(--border);background:var(--surface);color:var(--muted);transition:all .3s;margin-bottom:6px;}
+        .pt-step.done .pt-circle{background:var(--success);border-color:var(--success);color:white;}
+        .pt-step.active .pt-circle{background:var(--success);border-color:var(--success);color:white;box-shadow:0 0 0 5px rgba(6,214,160,.2);}
+        .pt-label{font-family:'Barlow Condensed',sans-serif;font-size:.7rem;font-weight:700;text-transform:uppercase;}
+        .pt-step.done .pt-label{color:var(--success);}
+        .pt-step.active .pt-label{color:var(--success);}
+        .pt-step.pending .pt-label{color:var(--muted);}
+        .pt-line{flex:1;height:2px;background:var(--border);max-width:35px;align-self:flex-start;margin-top:20px;}
+        .pt-line.done{background:var(--success);}
+
+        /* Cards */
+        .card-v{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+        .card-v-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .card-v-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--success);margin:0;}
+        .card-v-body{padding:20px;}
+        .field-lbl{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+        .field-ctrl{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--text);background:white;outline:none;transition:all .2s;}
+        .field-ctrl:focus{border-color:var(--success);box-shadow:0 0 0 3px rgba(6,214,160,.15);}
+        .field-ctrl:read-only{background:#f1f5f9;color:var(--muted);cursor:not-allowed;}
+        .field-group{margin-bottom:16px;}
+
+        /* Info pedido */
+        .info-row{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);}
+        .info-row:last-child{border-bottom:none;}
+        .info-key{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:120px;}
+        .info-val{font-size:.88rem;font-weight:600;color:var(--text);}
+
+        /* Resumen box */
+        .resumen-box{background:linear-gradient(135deg,rgba(6,214,160,.05),rgba(6,214,160,.1));border:1px solid rgba(6,214,160,.2);border-radius:12px;padding:20px;}
+        .resumen-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;color:var(--success);margin-bottom:16px;}
+        .resumen-title i{margin-right:8px;}
+
+        /* Tabla resumen */
+        .tabla-resumen{width:100%;border-collapse:collapse;}
+        .tabla-resumen th{background:var(--bg);padding:10px 12px;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:2px solid var(--border);}
+        .tabla-resumen td{padding:10px 12px;border-bottom:1px solid var(--border);font-size:.85rem;}
+        .tabla-resumen tr:last-child td{border-bottom:none;}
+        .tabla-resumen tr:hover{background:rgba(6,214,160,.03);}
+
+        /* Envío card */
+        .envio-card{background:linear-gradient(135deg,rgba(245,158,11,.05),rgba(245,158,11,.1));border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:16px;margin-top:16px;}
+        .envio-title{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:800;text-transform:uppercase;color:var(--warning);margin-bottom:12px;}
+        .envio-title i{margin-right:6px;}
+
+        /* Total final */
+        .total-final-box{background:var(--sidebar-bg);border-radius:14px;padding:24px;color:white;}
+        .total-final-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px;}
+        .total-final-amount{font-family:'Barlow Condensed',sans-serif;font-size:2.5rem;font-weight:800;color:var(--accent);line-height:1;}
+        .total-final-detalle{font-size:.82rem;color:rgba(255,255,255,.4);margin-top:8px;}
+
+        /* Estado badges */
+        .badge-status{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:700;text-transform:uppercase;}
+        .badge-listo{background:rgba(6,214,160,.12);color:#059669;}
+        .badge-envio{background:rgba(245,158,11,.12);color:#d97706;}
+        .badge-tienda{background:rgba(43,79,255,.12);color:var(--primary);}
+
+        /* Btns */
+        .btn-v{padding:10px 20px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+        .btn-primary-v{background:var(--primary);color:white;}
+        .btn-primary-v:hover{background:#1a35cc;}
+        .btn-success-v{background:var(--success);color:white;}
+        .btn-success-v:hover{background:#04b889;transform:translateY(-1px);}
+        .btn-warning-v{background:var(--warning);color:white;}
+        .btn-warning-v:hover{background:#d97706;}
+        .btn-outline-v{background:white;border:1.5px solid var(--border);color:var(--muted);}
+        .btn-outline-v:hover{border-color:var(--success);color:var(--success);}
+
+        /* Timeline etapas */
+        .timeline-etapas{display:flex;flex-direction:column;gap:8px;}
+        .etapa-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--bg);border-radius:8px;}
+        .etapa-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;}
+        .etapa-icon.done{background:var(--success);color:white;}
+        .etapa-info{flex:1;}
+        .etapa-nombre{font-size:.8rem;font-weight:700;color:var(--text);}
+        .etapa-fecha{font-size:.7rem;color:var(--muted);}
+        .etapa-encargado{font-size:.72rem;color:var(--success);font-weight:600;}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+        
+        <!-- Administración -->
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+        
+        <!-- Vendedor -->
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+        
+        <!-- Diseñador -->
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+        
+        <div class="sidebar-section">Sistema</div>
+        <a class="nav-item" href="lista-disenos.html"><i class="fas fa-images"></i> Diseños</a>
+        <a class="nav-item" href="terminado.html"><i class="fas fa-check-double"></i> Terminados</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-box" style="color:var(--success);margin-right:10px;"></i>Registro de Entrega</h1>
+            <p>Paso F: Finaliza el pedido y registra la entrega al cliente</p>
+        </div>
+        <a href="costura.html" class="btn-v btn-outline-v"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <!-- Pipeline - 6 Etapas -->
+    <div class="pipeline-tracker">
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Contrato</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Integrantes</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Diseño</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-tshirt"></i></div><div class="pt-label">Planchado</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-cut"></i></div><div class="pt-label">Costura</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step active"><div class="pt-circle"><i class="fas fa-box"></i></div><div class="pt-label">Entrega</div></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- FORMULARIO PRINCIPAL -->
+        <div class="col-lg-8">
+
+            <!-- Selector de pedido -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-file-contract" style="margin-right:8px;"></i>Pedido a Entregar</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="field-lbl">Seleccionar Pedido</label>
+                            <select class="field-ctrl" id="selectPedido" onchange="selPedido(this)">
+                                <option value="">— Seleccionar pedido —</option>
+                                <option value="PED-001|LUISA MARMOLEJO|30|0|CAMISETA MANGA CORTA|TIENDA VIZENGO|150.00|50.00">PED-001 · LUISA MARMOLEJO (30 prendas)</option>
+                                <option value="PED-003|ALBERTO YAPIAS|12|12|POLO 20/1|ENVÍO|120.00|30.00">PED-003 · ALBERTO YAPIAS (24 prendas) - ENVÍO</option>
+                                <option value="PED-004|TERESA SALAS|12|12|CAMISETA REPLICA|TIENDA 2|95.00|25.00">PED-004 · TERESA SALAS (24 prendas)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <label class="field-lbl">Cliente</label>
+                                    <div style="font-weight:700;font-size:.9rem;padding-top:8px;" id="pCliente">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="field-lbl">Entrega</label>
+                                    <div style="padding-top:8px;" id="pLugarEntrega">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="field-lbl">Estado</label>
+                                    <div style="padding-top:8px;" id="pEstado">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen del Pedido -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-clipboard-list" style="margin-right:8px;"></i>Resumen del Pedido</h5>
+                </div>
+                <div class="card-v-body">
+                    <div id="resumenPedidoBox">
+                        <div style="text-align:center;padding:30px;color:var(--muted);font-size:.85rem;font-style:italic;">
+                            <i class="fas fa-hand-pointer" style="font-size:1.8rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+                            Selecciona un pedido para ver el resumen
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detalle de Prendas -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-tshirt" style="margin-right:8px;"></i>Detalle de Prendas</h5>
+                </div>
+                <div class="card-v-body">
+                    <div id="detallePrendasBox">
+                        <div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">
+                            Selecciona un pedido para ver el detalle
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Costos y Envío -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-calculator" style="margin-right:8px;"></i>Costos Finales</h5>
+                </div>
+                <div class="card-v-body">
+                    <div id="costosBox">
+                        <div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">
+                            Selecciona un pedido para ver los costos
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:28px;">
+                <button class="btn-v btn-outline-v" onclick="window.location.href='lista-pedidos.html'">Cancelar</button>
+                <button class="btn-v btn-success-v" onclick="entregarPedido()">
+                    <i class="fas fa-check-circle"></i> Entregado
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL LATERAL -->
+        <div class="col-lg-4">
+            <!-- Info del pedido -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-info-circle" style="margin-right:8px;"></i>Info del Pedido</h5>
+                </div>
+                <div class="card-v-body">
+                    <div id="infoPedidoBox">
+                        <div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">
+                            <i class="fas fa-hand-pointer" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+                            Selecciona un pedido
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timeline de etapas - Historial del Pedido -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-history" style="margin-right:8px;"></i>Historial del Pedido</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="timeline-etapas">
+                        <div class="etapa-item">
+                            <div class="etapa-icon done"><i class="fas fa-check"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre">Contrato</div>
+                                <div class="etapa-fecha">Registrado correctamente</div>
+                            </div>
+                        </div>
+                        <div class="etapa-item">
+                            <div class="etapa-icon done"><i class="fas fa-check"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre">Integrantes</div>
+                                <div class="etapa-fecha">Cargados al sistema</div>
+                            </div>
+                        </div>
+                        <div class="etapa-item">
+                            <div class="etapa-icon done"><i class="fas fa-check"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre">Diseño</div>
+                                <div class="etapa-encargado">Aprobado</div>
+                            </div>
+                        </div>
+                        <div class="etapa-item">
+                            <div class="etapa-icon done"><i class="fas fa-check"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre">Planchado</div>
+                                <div class="etapa-encargado" id="etapaPlanchador">—</div>
+                            </div>
+                        </div>
+                        <div class="etapa-item">
+                            <div class="etapa-icon done"><i class="fas fa-check"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre">Costura</div>
+                                <div class="etapa-encargado" id="etapaCosturero">—</div>
+                            </div>
+                        </div>
+                        <div class="etapa-item" style="background:rgba(6,214,160,.1);border:1px solid rgba(6,214,160,.2);">
+                            <div class="etapa-icon done"><i class="fas fa-box"></i></div>
+                            <div class="etapa-info">
+                                <div class="etapa-nombre" style="color:var(--success);">Entrega</div>
+                                <div class="etapa-fecha" style="color:var(--success);">Pendiente de entrega</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total final -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-coins" style="margin-right:8px;"></i>Total a Cobrar</h5>
+                </div>
+                <div class="card-v-body" style="padding:0;">
+                    <div class="total-final-box" style="border-radius:0 0 14px 14px;">
+                        <div class="total-final-label">Monto Total</div>
+                        <div class="total-final-amount" id="totalFinal">S/ 0.00</div>
+                        <div class="total-final-detalle" id="totalFinalDetalle">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const rol = sessionStorage.getItem('vz_rol') || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = {vendedor:'Vendedor',disenador:'Diseñador',administrador:'Administrador'};
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+    
+    // Navegación por rol
+    if (rol === 'administrador') {
+        document.getElementById('nav-usuarios').style.display = 'flex';
+    }
+    if (rol === 'vendedor' || rol === 'administrador') {
+        document.getElementById('nav-vendedor-label').style.display = 'block';
+        document.getElementById('nav-ingreso').style.display = 'flex';
+        document.getElementById('nav-integrantes').style.display = 'flex';
+        document.getElementById('nav-entrega').style.display = 'flex';
+        document.getElementById('nav-entrega').classList.add('active');
+    }
+    if (rol === 'disenador' || rol === 'administrador') {
+        document.getElementById('nav-disenador-label').style.display = 'block';
+        document.getElementById('nav-diseno').style.display = 'flex';
+        document.getElementById('nav-planchado').style.display = 'flex';
+        document.getElementById('nav-costura').style.display = 'flex';
+    }
+    
+    function cerrarSesion() { sessionStorage.clear(); window.location.href='login.html'; }
+
+    // Datos de pedidos completos
+    const pedidos = {
+        'PED-001|LUISA MARMOLEJO|30|0|CAMISETA MANGA CORTA|TIENDA VIZENGO|150.00|50.00': {
+            codigo: 'PED-001',
+            cliente: 'LUISA MARMOLEJO',
+            celular: '999-888-777',
+            polos: 30,
+            shorts: 0,
+            tipoPrenda: 'CAMISETA MANGA CORTA',
+            lugarEntrega: 'TIENDA VIZENGO',
+            esEnvio: false,
+            subtotal: 150.00,
+            adelanto: 50.00,
+            saldo: 100.00,
+            planchador: 'Carlos',
+            costurero: 'María',
+            tallas: {S: 5, M: 10, L: 10, XL: 5}
+        },
+        'PED-003|ALBERTO YAPIAS|12|12|POLO 20/1|ENVÍO|120.00|30.00': {
+            codigo: 'PED-003',
+            cliente: 'ALBERTO YAPIAS',
+            celular: '999-123-456',
+            polos: 12,
+            shorts: 12,
+            tipoPrenda: 'POLO 20/1',
+            lugarEntrega: 'ENVÍO',
+            esEnvio: true,
+            direccionEnvio: 'Av. Los Alamos 456, Urb. San Juan',
+            subtotal: 120.00,
+            adelanto: 30.00,
+            saldo: 90.00,
+            planchador: 'Miguel',
+            costurero: 'Juan',
+            tallas: {S: 2, M: 5, L: 3, XL: 2}
+        },
+        'PED-004|TERESA SALAS|12|12|CAMISETA REPLICA|TIENDA 2|95.00|25.00': {
+            codigo: 'PED-004',
+            cliente: 'TERESA SALAS',
+            celular: '999-555-333',
+            polos: 12,
+            shorts: 12,
+            tipoPrenda: 'CAMISETA REPLICA',
+            lugarEntrega: 'TIENDA 2',
+            esEnvio: false,
+            subtotal: 95.00,
+            adelanto: 25.00,
+            saldo: 70.00,
+            planchador: 'Rosa',
+            costurero: 'Carmen',
+            tallas: {S: 2, M: 5, L: 3, XL: 2}
+        }
+    };
+
+    let pedidoSeleccionado = null;
+    let costoEnvio = 0;
+
+    function selPedido(sel) {
+        const val = sel.value;
+        if (!val) {
+            limpiarCampos();
+            return;
+        }
+        
+        pedidoSeleccionado = pedidos[val];
+        
+        // Actualizar campos básicos
+        document.getElementById('pCliente').textContent = pedidoSeleccionado.cliente;
+        document.getElementById('pLugarEntrega').innerHTML = pedidoSeleccionado.esEnvio 
+            ? `<span class="badge-status badge-envio"><i class="fas fa-truck"></i> ENVÍO</span>`
+            : `<span class="badge-status badge-tienda"><i class="fas fa-store"></i> ${pedidoSeleccionado.lugarEntrega}</span>`;
+        document.getElementById('pEstado').innerHTML = '<span class="badge-status badge-listo"><i class="fas fa-check"></i> LISTO</span>';
+        
+        // Actualizar etapas
+        document.getElementById('etapaPlanchador').textContent = `Por: ${pedidoSeleccionado.planchador}`;
+        document.getElementById('etapaCosturero').textContent = `Por: ${pedidoSeleccionado.costurero}`;
+        
+        // Mostrar resumen del pedido
+        mostrarResumenPedido();
+        mostrarDetallePrendas();
+        mostrarCostos();
+        mostrarInfoPedido();
+    }
+
+    function limpiarCampos() {
+        document.getElementById('pCliente').textContent = '—';
+        document.getElementById('pLugarEntrega').textContent = '—';
+        document.getElementById('pEstado').textContent = '—';
+        document.getElementById('resumenPedidoBox').innerHTML = '<div style="text-align:center;padding:30px;color:var(--muted);font-size:.85rem;font-style:italic;"><i class="fas fa-hand-pointer" style="font-size:1.8rem;display:block;margin-bottom:10px;opacity:.3;"></i>Selecciona un pedido para ver el resumen</div>';
+        document.getElementById('detallePrendasBox').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">Selecciona un pedido para ver el detalle</div>';
+        document.getElementById('costosBox').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">Selecciona un pedido para ver los costos</div>';
+        document.getElementById('infoPedidoBox').innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;"><i class="fas fa-hand-pointer" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.3;"></i>Selecciona un pedido</div>';
+        document.getElementById('totalFinal').textContent = 'S/ 0.00';
+        document.getElementById('totalFinalDetalle').textContent = '—';
+        pedidoSeleccionado = null;
+    }
+
+    function mostrarResumenPedido() {
+        const p = pedidoSeleccionado;
+        document.getElementById('resumenPedidoBox').innerHTML = `
+            <div class="resumen-box">
+                <div class="resumen-title"><i class="fas fa-file-alt"></i>Información del Contrato</div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-key">Código</span>
+                            <span class="info-val">${p.codigo}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Cliente</span>
+                            <span class="info-val">${p.cliente}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Celular</span>
+                            <span class="info-val">${p.celular}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <span class="info-key">Tipo Prenda</span>
+                            <span class="info-val" style="color:var(--info);">${p.tipoPrenda}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-key">Lugar Entrega</span>
+                            <span class="info-val">${p.lugarEntrega}</span>
+                        </div>
+                        ${p.esEnvio ? `
+                        <div class="info-row">
+                            <span class="info-key">Dirección</span>
+                            <span class="info-val">${p.direccionEnvio}</span>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    function mostrarDetallePrendas() {
+        const p = pedidoSeleccionado;
+        const totalPrendas = p.polos + p.shorts;
+        
+        document.getElementById('detallePrendasBox').innerHTML = `
+            <table class="tabla-resumen">
+                <thead>
+                    <tr>
+                        <th>Tipo de Prenda</th>
+                        <th style="text-align:center;">Cantidad</th>
+                        <th style="text-align:center;">Tallas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <span style="display:inline-flex;align-items:center;gap:8px;">
+                                <i class="fas fa-tshirt" style="color:var(--info);"></i>
+                                ${p.tipoPrenda}
+                            </span>
+                        </td>
+                        <td style="text-align:center;font-weight:700;">${p.polos}</td>
+                        <td style="text-align:center;">
+                            <span style="font-size:.75rem;color:var(--muted);">
+                                S:${p.tallas.S} M:${p.tallas.M} L:${p.tallas.L} XL:${p.tallas.XL}
+                            </span>
+                        </td>
+                    </tr>
+                    ${p.shorts > 0 ? `
+                    <tr>
+                        <td>
+                            <span style="display:inline-flex;align-items:center;gap:8px;">
+                                <i class="fas fa-running" style="color:var(--success);"></i>
+                                Short Deportivo
+                            </span>
+                        </td>
+                        <td style="text-align:center;font-weight:700;">${p.shorts}</td>
+                        <td style="text-align:center;">
+                            <span style="font-size:.75rem;color:var(--muted);">
+                                S:${p.tallas.S} M:${p.tallas.M} L:${p.tallas.L} XL:${p.tallas.XL}
+                            </span>
+                        </td>
+                    </tr>
+                    ` : ''}
+                </tbody>
+                <tfoot style="background:var(--bg);">
+                    <tr>
+                        <td style="font-weight:700;">TOTAL PRENDAS</td>
+                        <td style="text-align:center;font-weight:800;font-size:1.1rem;color:var(--success);">${totalPrendas}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        `;
+    }
+
+    function mostrarCostos() {
+        const p = pedidoSeleccionado;
+        costoEnvio = 0;
+        
+        let envioHTML = '';
+        if (p.esEnvio) {
+            envioHTML = `
+                <div class="envio-card">
+                    <div class="envio-title"><i class="fas fa-truck"></i>Costo de Envío</div>
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-8">
+                            <label class="field-lbl">Monto del Envío (S/)</label>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <span style="font-weight:700;color:var(--warning);font-size:1.2rem;">S/</span>
+                                <input type="number" class="field-ctrl" id="costoEnvio" value="0.00" step="0.10" min="0" oninput="actualizarTotal()" style="font-weight:700;color:var(--warning);font-size:1.1rem;">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="field-lbl">Dirección</label>
+                            <div style="font-size:.82rem;color:var(--text);">${p.direccionEnvio}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        document.getElementById('costosBox').innerHTML = `
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div style="background:var(--bg);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Subtotal</div>
+                        <div style="font-size:1.3rem;font-weight:800;color:var(--text);">S/ ${p.subtotal.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background:rgba(6,214,160,.08);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Adelanto</div>
+                        <div style="font-size:1.3rem;font-weight:800;color:var(--success);">S/ ${p.adelanto.toFixed(2)}</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div style="background:rgba(239,71,111,.08);border-radius:10px;padding:16px;text-align:center;">
+                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Saldo Pendiente</div>
+                        <div style="font-size:1.3rem;font-weight:800;color:var(--danger);">S/ ${p.saldo.toFixed(2)}</div>
+                    </div>
+                </div>
+            </div>
+            ${envioHTML}
+        `;
+        
+        actualizarTotal();
+    }
+
+    function actualizarTotal() {
+        if (!pedidoSeleccionado) return;
+        
+        let total = pedidoSeleccionado.saldo;
+        let detalle = `Saldo: S/ ${pedidoSeleccionado.saldo.toFixed(2)}`;
+        
+        if (pedidoSeleccionado.esEnvio) {
+            const envioInput = document.getElementById('costoEnvio');
+            if (envioInput) {
+                costoEnvio = parseFloat(envioInput.value) || 0;
+                total += costoEnvio;
+                detalle += ` + Envío: S/ ${costoEnvio.toFixed(2)}`;
+            }
+        }
+        
+        document.getElementById('totalFinal').textContent = `S/ ${total.toFixed(2)}`;
+        document.getElementById('totalFinalDetalle').textContent = detalle;
+    }
+
+    function mostrarInfoPedido() {
+        const p = pedidoSeleccionado;
+        document.getElementById('infoPedidoBox').innerHTML = `
+            <div class="info-row"><span class="info-key">Pedido</span><span class="info-val">${p.codigo}</span></div>
+            <div class="info-row"><span class="info-key">Cliente</span><span class="info-val">${p.cliente}</span></div>
+            <div class="info-row"><span class="info-key">Prendas</span><span class="info-val">${p.polos + p.shorts}</span></div>
+            <div class="info-row"><span class="info-key">Tipo</span><span class="info-val" style="color:var(--info);">${p.tipoPrenda}</span></div>
+            <div class="info-row"><span class="info-key">Entrega</span><span class="info-val" style="color:var(--warning);">${p.lugarEntrega}</span></div>
+        `;
+    }
+
+    function entregarPedido() {
+        if (!pedidoSeleccionado) {
+            alert('Por favor, selecciona un pedido para entregar.');
+            return;
+        }
+        
+        const totalFinal = document.getElementById('totalFinal').textContent;
+        const envioInfo = pedidoSeleccionado.esEnvio ? `\nCosto de envío: S/ ${costoEnvio.toFixed(2)}` : '';
+        
+        const confirmacion = confirm(
+            `¿Confirmar entrega del pedido?\n\n` +
+            `Pedido: ${pedidoSeleccionado.codigo}\n` +
+            `Cliente: ${pedidoSeleccionado.cliente}\n` +
+            `Total a cobrar: ${totalFinal}${envioInfo}\n\n` +
+            `Esta acción marcará el pedido como ENTREGADO.`
+        );
+        
+        if (confirmacion) {
+            alert(
+                `✓ ¡ENTREGA REGISTRADA EXITOSAMENTE!\n\n` +
+                `Pedido: ${pedidoSeleccionado.codigo}\n` +
+                `Cliente: ${pedidoSeleccionado.cliente}\n` +
+                `Monto cobrado: ${totalFinal}\n\n` +
+                `El pedido ha sido marcado como ENTREGADO.`
+            );
+            window.location.href = 'seguimiento.html';
+        }
+    }
+</script>
+</body>
+</html>

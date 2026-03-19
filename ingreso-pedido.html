@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Nuevo Pedido</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { --primary:#2B4FFF; --accent:#FFD23F; --success:#06d6a0; --warning:#f59e0b; --danger:#ef476f; --info:#38bdf8; --bg:#f0f4ff; --surface:#fff; --border:#e2e8f0; --text:#1e293b; --muted:#64748b; --sidebar-bg:#0f1729; --sidebar-w:240px; }
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+        /* Sidebar */
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+        .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,0.06);}
+        .brand-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:2px;color:white;}
+        .brand-logo span{color:var(--accent);}
+        .brand-sub{font-size:.68rem;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+        .sidebar-section{padding:12px 20px 4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;margin:1px 10px;border-radius:8px;color:rgba(255,255,255,.55);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .2s;}
+        .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+        .nav-item.active{background:var(--primary);color:white;}
+        .nav-item i{width:18px;text-align:center;font-size:.9rem;}
+        .badge-nav{background:var(--accent);color:#1a1a1a;border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;margin-left:auto;}
+        .sidebar-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;}
+        .user-info .user-name{font-size:.9rem;font-weight:600;color:white;}
+        .user-info .user-role{font-size:.72rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+        .btn-logout{margin-left:auto;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;font-size:1rem;transition:color .2s;}
+        .btn-logout:hover{color:var(--danger);}
+        /* Main */
+        .main-content{margin-left:var(--sidebar-w);flex:1;padding:28px;}
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+        .topbar h1{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:.5px;}
+        .topbar p{font-size:.85rem;color:var(--muted);margin-top:2px;}
+
+        /* Pipeline tracker - ajustado para 6 pasos */
+        .pipeline-tracker{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:0;position:relative;}
+        .pt-step{display:flex;flex-direction:column;align-items:center;text-align:center;position:relative;z-index:1;flex:1;max-width:120px;}
+        .pt-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid var(--border);background:var(--surface);color:var(--muted);transition:all .3s;margin-bottom:6px;}
+        .pt-step.done .pt-circle{background:var(--success);border-color:var(--success);color:white;}
+        .pt-step.active .pt-circle{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 0 0 5px rgba(43,79,255,.15);}
+        .pt-label{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .pt-step.done .pt-label{color:var(--success);}
+        .pt-step.active .pt-label{color:var(--primary);}
+        .pt-step.pending .pt-label{color:var(--muted);}
+        .pt-line{flex:1;height:2px;background:var(--border);max-width:50px;align-self:flex-start;margin-top:20px;}
+        .pt-line.done{background:var(--success);}
+
+        /* Cards */
+        .card-v{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+        .card-v-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:linear-gradient(to right,#fafbff,#fff);}
+        .card-v-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin:0;}
+        .card-v-body{padding:20px;}
+
+        /* Form fields */
+        .field-lbl{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+        .field-ctrl{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--text);background:white;outline:none;transition:all .2s;}
+        .field-ctrl:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(43,79,255,.1);}
+        .field-group{margin-bottom:16px;}
+
+        /* Kit selector - MEJORADO */
+        .kit-box{background:#fafbff;border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:16px;}
+        .kit-item{background:white;border:1px solid var(--border);border-radius:8px;padding:12px;position:relative;height:100%;}
+        .kit-item-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+        .kit-item-icon{width:28px;height:28px;border-radius:6px;background:var(--primary);display:flex;align-items:center;justify-content:center;color:white;font-size:.75rem;}
+        .kit-item-title{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--primary);}
+        .kit-divider-h{display:flex;align-items:center;justify-content:center;padding:8px 0;}
+        .kit-divider-h i{color:var(--muted);font-size:.7rem;background:var(--bg);padding:4px 8px;border-radius:50%;}
+
+        /* Kit pricing section */
+        .kit-pricing{display:flex;gap:12px;padding-top:12px;margin-top:12px;border-top:1px solid var(--border);}
+        .kit-pricing-item{flex:1;}
+        .kit-pricing-item label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px;display:block;}
+
+        /* Calendario de disponibilidad */
+        .cal-grid{display:flex;gap:8px;overflow-x:auto;padding:4px 0;}
+        .cal-day{min-width:60px;background:white;border:1.5px solid var(--border);border-radius:10px;padding:8px 6px;text-align:center;cursor:pointer;transition:all .2s;}
+        .cal-day:hover{border-color:var(--primary);}
+        .cal-day.selected{border-color:var(--primary);background:rgba(43,79,255,.06);}
+        .cal-dn{font-size:.65rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);}
+        .cal-num{font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--text);}
+        .cal-badge{border-radius:12px;padding:1px 8px;font-size:.68rem;font-weight:700;margin-top:3px;display:inline-block;}
+        .cb-rojo{background:rgba(239,71,111,.15);color:#dc2626;}
+        .cb-amarillo{background:rgba(245,158,11,.15);color:#d97706;}
+        .cb-verde{background:rgba(6,214,160,.15);color:#059669;}
+        .cb-gris{background:rgba(100,116,139,.1);color:#64748b;}
+
+        /* Proforma table */
+        .pf-table{width:100%;border-collapse:collapse;}
+        .pf-table thead th{background:var(--sidebar-bg);color:rgba(255,255,255,.6);padding:10px 14px;font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;}
+        .pf-table tbody tr{border-bottom:1px solid var(--border);}
+        .pf-table tbody tr:last-child{border-bottom:none;}
+        .pf-table tbody td{padding:11px 14px;font-size:.87rem;vertical-align:middle;}
+        .pf-table tbody tr:hover{background:#f8faff;}
+        .pf-empty{text-align:center;padding:24px;color:var(--muted);font-size:.88rem;font-style:italic;}
+
+        /* Totals bar */
+        .totals-bar{background:var(--sidebar-bg);border-radius:0 0 14px 14px;padding:16px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;align-items:center;}
+        .tb-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);}
+        .tb-val{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;color:var(--accent);line-height:1.1;}
+        .tb-input{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 12px;color:white;font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:700;width:100%;outline:none;}
+        .tb-input:focus{border-color:var(--accent);}
+
+        /* Upload */
+        .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:#fafbff;}
+        .upload-zone:hover{border-color:var(--primary);background:rgba(43,79,255,.03);}
+        .upload-zone.has-files{border-color:var(--success);background:rgba(6,214,160,.04);}
+        .upload-zone.drag-over{border-color:var(--primary);background:rgba(43,79,255,.06);transform:scale(1.01);}
+        .preview-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px;}
+        .preview-item{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);aspect-ratio:1;}
+        .preview-item img{width:100%;height:100%;object-fit:cover;display:block;}
+        .preview-remove{position:absolute;top:4px;right:4px;background:rgba(220,38,38,.85);color:white;border:none;border-radius:50%;width:22px;height:22px;font-size:.6rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+        .preview-add{border:2px dashed var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);font-size:1.2rem;aspect-ratio:1;transition:all .2s;}
+        .preview-add:hover{border-color:var(--primary);color:var(--primary);}
+
+        /* Design observations */
+        .design-obs{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+        .design-obs-label{display:flex;align-items:center;gap:6px;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+        .design-obs-label i{color:var(--warning);}
+        .design-obs-textarea{min-height:60px;resize:vertical;}
+
+        /* Btn */
+        .btn-v{padding:10px 20px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+        .btn-primary-v{background:var(--primary);color:white;}
+        .btn-primary-v:hover{background:#1a35cc;transform:translateY(-1px);}
+        .btn-success-v{background:var(--success);color:white;}
+        .btn-success-v:hover{background:#04b889;}
+        .btn-outline-v{background:white;border:1.5px solid var(--border);color:var(--muted);}
+        .btn-outline-v:hover{border-color:var(--primary);color:var(--primary);}
+        .btn-sm-v{padding:7px 14px;font-size:.8rem;}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item active" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-plus-circle" style="color:var(--primary);margin-right:10px;"></i>Registro de Nuevo Pedido</h1>
+            <p>Paso A: Ingresa los datos del contrato</p>
+        </div>
+        <a href="lista-pedidos.html" class="btn-v btn-outline-v"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <!-- Pipeline tracker - 6 etapas -->
+    <div class="pipeline-tracker">
+        <div class="pt-step active">
+            <div class="pt-circle"><i class="fas fa-file-contract"></i></div>
+            <div class="pt-label">Contrato</div>
+        </div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending">
+            <div class="pt-circle">2</div>
+            <div class="pt-label">Integrantes</div>
+        </div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending">
+            <div class="pt-circle">3</div>
+            <div class="pt-label">Diseño</div>
+        </div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending">
+            <div class="pt-circle">4</div>
+            <div class="pt-label">Planchado</div>
+        </div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending">
+            <div class="pt-circle">5</div>
+            <div class="pt-label">Costura</div>
+        </div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending">
+            <div class="pt-circle">6</div>
+            <div class="pt-label">Entrega</div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="col-lg-8">
+
+            <!-- Datos del Contrato -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-file-signature" style="margin-right:8px;"></i>Datos del Contrato</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="field-group">
+                                <label class="field-lbl">Tipo de Contrato</label>
+                                <select class="field-ctrl" id="tipoContratoSelect" onchange="toggleClienteInput(this)">
+                                    <option value="PEDIDO">PEDIDO</option>
+                                    <option value="SERVICIO">SERVICIO</option>
+                                    <option value="COSTURA">COSTURA</option>
+                                    <option value="ESTAMPADO">ESTAMPADO</option>
+                                    <option value="PLANCHADO">PLANCHADO</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="field-group">
+                                <label class="field-lbl">Lugar de Entrega</label>
+                                <select class="field-ctrl" id="lugarEntregaSelect" onchange="toggleEnvioInput(this)">
+                                    <option>TIENDA VIZENGO</option>
+                                    <option>TIENDA 2</option>
+                                    <option>TIENDA 3</option>
+                                    <option value="ENVÍO">ENVÍO / AGENCIA</option>
+                                </select>
+                                <input type="text" id="direccionEnvio" class="field-ctrl mt-2" placeholder="Especifique agencia o dirección..." style="display:none;">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="field-group">
+                                <label class="field-lbl">Vendedor</label>
+                                <select class="field-ctrl" id="vendedorSelect">
+                                    <option>Luis</option>
+                                    <option>Karina</option>
+                                    <option>Erick</option>
+                                    <option>Vizengo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="field-group">
+                                <label class="field-lbl">Cliente</label>
+                                <input type="text" id="clienteInput" class="field-ctrl" placeholder="Nombre completo del cliente">
+                                <select id="clienteSelect" class="field-ctrl" style="display:none;">
+                                    <option value="" disabled selected>Seleccionar...</option>
+                                    <option>Karina</option><option>Yanina</option><option>Nitza</option><option>Lizeth</option><option value="NUEVO">+ Nuevo cliente</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="field-group">
+                                <label class="field-lbl">Celular</label>
+                                <input type="tel" class="field-ctrl" placeholder="999-999-999">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="field-group" style="margin-bottom:0;">
+                                <label class="field-lbl">Observación General</label>
+                                <textarea class="field-ctrl" rows="2" placeholder="Notas importantes del cliente o pedido..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kit / Productos -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-tshirt" style="margin-right:8px;"></i>Detalle del Pedido (Kits)</h5>
+                    <button class="btn-v btn-primary-v btn-sm-v" onclick="agregarKitPrincipal()"><i class="fas fa-plus"></i> Agregar a Proforma</button>
+                </div>
+                <div class="card-v-body">
+                    <!-- Kit principal - MEJORADO -->
+                    <div class="kit-box">
+                        <div class="row g-3">
+                            <!-- Camiseta / Superior -->
+                            <div class="col-md-4">
+                                <div class="kit-item">
+                                    <div class="kit-item-header">
+                                        <div class="kit-item-icon"><i class="fas fa-tshirt"></i></div>
+                                        <span class="kit-item-title">Camiseta / Superior</span>
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:8px;">
+                                        <label class="field-lbl">Tipo</label>
+                                        <select class="field-ctrl" id="camisetaSelect" onchange="toggleOtros(this,'camisetaOtros')">
+                                            <option>CAMISETA MANGA CORTA</option><option>CAMISETA MANGA LARGA</option>
+                                            <option>CAMISETA REPLICA</option><option>CAMISETA BASQUET</option>
+                                            <option>POLO LISTO</option><option>SUDADERA</option>
+                                            <option>POLO 20/1</option><option>POLO 30/1</option>
+                                            <option>POLO PUBLICITARIO</option><option>MANGALARGA 20/1</option>
+                                            <option>MANGALARGA 30/1</option><option>POLO CAMISERO</option>
+                                            <option>MANGALARGA CAMISERO</option><option>CASACA</option>
+                                            <option>CHALECO</option><option>POLERA</option><option value="OTROS">OTROS</option>
+                                        </select>
+                                        <input type="text" id="camisetaOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:8px;">
+                                        <label class="field-lbl">Tela</label>
+                                        <select class="field-ctrl" id="camisetaTela" onchange="toggleTelaOtros(this,'camisetaTelaOtros')" style="font-size:.8rem;color:var(--muted);">
+                                            <option>Tela: ESPIGA</option><option>Tela: MARATHON</option><option>Tela: DRY</option>
+                                            <option>Tela: ALGODON</option><option>Tela: PIQUE</option><option>Tela: SPUM</option>
+                                            <option>Tela: MALLA WAFER</option><option>Tela: DRILL</option><option>Tela: POLISTRECH</option>
+                                            <option>Tela: POLINAN</option><option>Tela: POLAR</option><option value="Tela: OTROS">Tela: OTROS</option>
+                                        </select>
+                                        <input type="text" id="camisetaTelaOtros" class="field-ctrl mt-1" placeholder="Especifique la tela..." style="display:none;">
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:0;">
+                                        <label class="field-lbl">Talla Principal</label>
+                                        <input type="text" id="camisetaTalla" class="field-ctrl" placeholder="Ej: M, L, XL...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Short / Inferior -->
+                            <div class="col-md-4">
+                                <div class="kit-item">
+                                    <div class="kit-item-header">
+                                        <div class="kit-item-icon" style="background:var(--success);"><i class="fas fa-socks"></i></div>
+                                        <span class="kit-item-title" style="color:var(--success);">Short / Inferior</span>
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:8px;">
+                                        <label class="field-lbl">Tipo</label>
+                                        <select class="field-ctrl" id="shortSelect" onchange="toggleShortTela(this);toggleOtros(this,'shortOtros')">
+                                            <option value="NINGUNO">NINGUNO</option>
+                                            <option selected>SHORT</option><option>SNICKER</option>
+                                            <option>BASQUET</option><option>SHORT FALDA</option>
+                                            <option>REPLICA</option><option value="OTROS">OTROS</option>
+                                        </select>
+                                        <input type="text" id="shortOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:8px;">
+                                        <label class="field-lbl">Tela</label>
+                                        <select class="field-ctrl" id="shortTela" onchange="toggleTelaOtros(this,'shortTelaOtros')" style="font-size:.8rem;color:var(--muted);">
+                                            <option>Tela: ESPIGA</option><option>Tela: MARATHON</option><option>Tela: DRY</option>
+                                            <option>Tela: NOVA</option><option>Tela: FULL LICRA</option><option>Tela: FRENCH TERRY</option><option value="Tela: OTROS">Tela: OTROS</option>
+                                        </select>
+                                        <input type="text" id="shortTelaOtros" class="field-ctrl mt-1" placeholder="Especifique la tela..." style="display:none;">
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:0;">
+                                        <label class="field-lbl">Talla</label>
+                                        <input type="text" id="shortTalla" class="field-ctrl" placeholder="Ej: M, L, XL...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Medias / Otros -->
+                            <div class="col-md-4">
+                                <div class="kit-item">
+                                    <div class="kit-item-header">
+                                        <div class="kit-item-icon" style="background:var(--warning);"><i class="fas fa-shoe-prints"></i></div>
+                                        <span class="kit-item-title" style="color:var(--warning);">Medias / Otros</span>
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:8px;">
+                                        <label class="field-lbl">Tipo</label>
+                                        <select class="field-ctrl" id="mediasSelect" onchange="toggleOtros(this,'mediasOtros')">
+                                            <option selected value="NINGUNO">NINGUNO</option>
+                                            <option>RODILLERA</option>
+                                            <option>FUTSALERA</option>
+                                            <option>TOBILLERA</option>
+                                            <option>TALONERA</option>
+                                            <option value="OTROS">OTROS</option>
+                                        </select>
+                                        <input type="text" id="mediasOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
+                                    </div>
+                                    <div class="field-group" style="margin-bottom:0;">
+                                        <label class="field-lbl">Detalles</label>
+                                        <input type="text" class="field-ctrl" placeholder="Color, tamaño..." style="color:var(--muted);">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cantidad y Precio -->
+                        <div class="kit-pricing">
+                            <div class="kit-pricing-item">
+                                <label>Cantidad</label>
+                                <input type="number" id="kitCantidad" class="field-ctrl text-center fw-bold" value="1" min="1">
+                            </div>
+                            <div class="kit-pricing-item">
+                                <label>Precio Unitario</label>
+                                <div style="display:flex;align-items:center;gap:4px;">
+                                    <span style="font-size:1rem;color:var(--primary);font-weight:700;">S/</span>
+                                    <input type="number" id="kitPrecio" class="field-ctrl text-end fw-bold" value="35.00" style="font-size:1rem;color:var(--primary);">
+                                </div>
+                            </div>
+                            <div class="kit-pricing-item" style="display:flex;align-items:flex-end;">
+                                <button class="btn-v btn-success-v" onclick="agregarKitPrincipal()" style="width:100%;justify-content:center;">
+                                    <i class="fas fa-plus"></i> Agregar Kit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adicional talla especial -->
+                    <div class="kit-box" style="border-color:rgba(43,79,255,.2);">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:var(--primary);text-transform:uppercase;"><i class="fas fa-tags" style="margin-right:6px;"></i>Adicional Talla Especial</span>
+                            <button class="btn-v btn-primary-v btn-sm-v" onclick="agregarAdicional()"><i class="fas fa-plus"></i> Agregar</button>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-md-4">
+                                <label class="field-lbl">Talla</label>
+                                <select class="field-ctrl" id="xlTalla">
+                                    <option disabled selected>Seleccionar...</option>
+                                    <option>XL</option><option>XXL</option><option>XXXL</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="field-lbl">Cantidad</label>
+                                <input type="number" id="xlCantidad" class="field-ctrl text-center" value="1" min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="field-lbl">Precio Unit.</label>
+                                <div style="display:flex;align-items:center;gap:4px;">
+                                    <span style="font-size:.85rem;color:var(--muted);font-weight:600;">S/</span>
+                                    <input type="number" id="xlPrecio" class="field-ctrl text-end" value="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Banderolas y Merchandising -->
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="kit-box" style="height:100%;">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                    <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:var(--muted);text-transform:uppercase;"><i class="fas fa-flag" style="margin-right:6px;"></i>Banderolas / Merch</span>
+                                    <button class="btn-v btn-outline-v btn-sm-v" onclick="agregarMerch()"><i class="fas fa-plus"></i> Agregar</button>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-8">
+                                        <label class="field-lbl">Artículo</label>
+                                        <select class="field-ctrl" id="merchArticulo">
+                                            <option>NINGUNO</option><option>BANDEROLA</option><option>SOMBRERO</option>
+                                            <option>GORRO</option><option>BANDERA</option><option>PAÑUELO</option>
+                                            <option>IMPRESIÓN PAPEL</option><option>ESTAMPADO</option>
+                                            <option>BORDADO</option><option>SUBLIMADO</option><option>OTROS</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-4" style="display:flex;align-items:flex-end;padding-bottom:2px;">
+                                        <label style="display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:600;color:var(--success);cursor:pointer;">
+                                            <input type="checkbox" id="regaloCheck"> ¿Regalo?
+                                        </label>
+                                    </div>
+                                    <div class="col-4">
+                                        <label class="field-lbl">Cant.</label>
+                                        <input type="number" id="merchCantidad" class="field-ctrl text-center" value="1" min="1">
+                                    </div>
+                                    <div class="col-8">
+                                        <label class="field-lbl">Precio Unit.</label>
+                                        <div style="display:flex;align-items:center;gap:4px;">
+                                            <span style="font-size:.85rem;color:var(--muted);font-weight:600;">S/</span>
+                                            <input type="number" id="merchPrecio" class="field-ctrl text-end" value="0.00">
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="field-lbl">Especificaciones</label>
+                                        <input type="text" class="field-ctrl" placeholder="Ej: 1.5m x 3m, fondo azul...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- Logo/Referencia CON OBSERVACIONES DE DISEÑO -->
+                            <div class="kit-box" style="height:100%;">
+                                <label class="field-lbl" style="margin-bottom:10px;"><i class="fas fa-image" style="color:var(--primary);margin-right:6px;"></i>Logo / Referencia (máx. 4 fotos)</label>
+                                <div id="uploadArea" class="upload-zone" onclick="document.getElementById('logoInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                                    <input type="file" id="logoInput" hidden accept="image/*" multiple onchange="handleFileSelect(event)">
+                                    <i class="fas fa-cloud-upload-alt" style="font-size:1.8rem;color:var(--muted);display:block;margin-bottom:6px;"></i>
+                                    <div style="font-size:.82rem;font-weight:600;color:var(--muted);">Arrastra o haz clic · Máx. 4 fotos</div>
+                                </div>
+                                <div id="previewGrid" class="preview-grid" style="display:none;"></div>
+                                <div id="uploadCounter" style="font-size:.72rem;color:var(--muted);text-align:right;margin-top:6px;font-weight:600;display:none;"><span id="uploadCount">0</span>/4 fotos</div>
+                                
+                                <!-- NUEVO: Observaciones de Diseño -->
+                                <div class="design-obs">
+                                    <div class="design-obs-label"><i class="fas fa-pencil-alt"></i> Observaciones de Diseño</div>
+                                    <textarea id="observacionesDiseno" class="field-ctrl design-obs-textarea" rows="3" placeholder="Indica detalles del diseño: colores, posición del logo, texto a incluir, estilo preferido..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proforma -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title" style="color:var(--success);"><i class="fas fa-shopping-cart" style="margin-right:8px;"></i>Proforma del Pedido</h5>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="pf-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">Cant.</th>
+                                <th>Descripción</th>
+                                <th style="text-align:center;">Talla</th>
+                                <th style="text-align:right;">P. Unit.</th>
+                                <th style="text-align:right;">Sub Total</th>
+                                <th style="text-align:center;">—</th>
+                            </tr>
+                        </thead>
+                        <tbody id="listaProforma">
+                            <tr><td colspan="6" class="pf-empty"><i class="fas fa-info-circle" style="margin-right:6px;"></i>Agrega kits o artículos para ver la proforma</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="totals-bar">
+                    <div>
+                        <div class="tb-label">Adelanto</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:4px;">
+                            <span style="color:rgba(255,255,255,.4);font-size:.9rem;">S/</span>
+                            <input type="number" class="tb-input" placeholder="0.00" id="adelantoInput" oninput="calcSaldo()">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="tb-label">Saldo Pendiente</div>
+                        <div class="tb-val" id="saldoVal" style="color:#fbbf24;">S/ 0.00</div>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <div class="tb-label">Total a Pagar</div>
+                            <div class="tb-val" id="totalVal">S/ 0.00</div>
+                        </div>
+                        <button class="btn-v btn-success-v" onclick="guardarPedido()">
+                            <i class="fas fa-save"></i> Guardar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div class="col-lg-4">
+            <!-- Disponibilidad / Fecha entrega -->
+            <div class="card-v" style="position:sticky;top:20px;">
+                <div class="card-v-header">
+                    <h5 class="card-v-title" style="color:var(--warning);"><i class="fas fa-calendar-alt" style="margin-right:8px;"></i>Programar Entrega</h5>
+                </div>
+                <div class="card-v-body">
+                    <p style="font-size:.8rem;color:var(--muted);margin-bottom:14px;"><i class="fas fa-info-circle" style="margin-right:4px;"></i>Pedidos ya registrados esta semana:</p>
+                    <div class="cal-grid">
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Lun</div>
+                            <div class="cal-num">12</div>
+                            <span class="cal-badge cb-rojo">15</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Mar</div>
+                            <div class="cal-num">13</div>
+                            <span class="cal-badge cb-amarillo">8</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Mié</div>
+                            <div class="cal-num">14</div>
+                            <span class="cal-badge cb-verde">2</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Jue</div>
+                            <div class="cal-num">15</div>
+                            <span class="cal-badge cb-verde">1</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Vie</div>
+                            <div class="cal-num">16</div>
+                            <span class="cal-badge cb-amarillo">6</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Sáb</div>
+                            <div class="cal-num">17</div>
+                            <span class="cal-badge cb-rojo">12</span>
+                        </div>
+                        <div class="cal-day" onclick="selDia(this)">
+                            <div class="cal-dn">Dom</div>
+                            <div class="cal-num">18</div>
+                            <span class="cal-badge cb-gris">0</span>
+                        </div>
+                    </div>
+
+                    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+                    <div class="field-group">
+                        <label class="field-lbl"><i class="far fa-calendar-check" style="color:var(--primary);margin-right:4px;"></i>Fecha y Hora de Entrega</label>
+                        <input type="datetime-local" class="field-ctrl" id="fechaEntregaEstimada" style="border-color:var(--primary);">
+                    </div>
+
+                    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button class="btn-v btn-success-v" onclick="guardarPedido()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-save"></i> Guardar Pedido
+                        </button>
+                        <a href="registro-integrantes.html" class="btn-v btn-primary-v" style="width:100%;justify-content:center;text-decoration:none;">
+                            <i class="fas fa-arrow-right"></i> Ir a Integrantes
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sesión
+    const rol = sessionStorage.getItem('vz_rol') || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = {vendedor:'Vendedor',disenador:'Diseñador',administrador:'Administrador'};
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+
+    // Navegación por rol
+    if (rol === 'administrador') {
+        document.getElementById('nav-usuarios').style.display = 'flex';
+    }
+    if (rol === 'vendedor' || rol === 'administrador') {
+        document.getElementById('nav-vendedor-label').style.display = 'block';
+        document.getElementById('nav-ingreso').style.display = 'flex';
+        document.getElementById('nav-integrantes').style.display = 'flex';
+        document.getElementById('nav-entrega').style.display = 'flex';
+    }
+    if (rol === 'disenador' || rol === 'administrador') {
+        document.getElementById('nav-disenador-label').style.display = 'block';
+        document.getElementById('nav-diseno').style.display = 'flex';
+        document.getElementById('nav-planchado').style.display = 'flex';
+        document.getElementById('nav-costura').style.display = 'flex';
+    }
+
+    function cerrarSesion() { sessionStorage.clear(); window.location.href='login.html'; }
+
+    // Calendario
+    function selDia(el) { document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('selected')); el.classList.add('selected'); }
+
+    // Toggle helpers
+    function toggleOtros(sel, inputId) {
+        const inp = document.getElementById(inputId);
+        inp.style.display = sel.value==='OTROS' ? 'block' : 'none';
+    }
+    function toggleTelaOtros(sel, inputId) {
+        const inp = document.getElementById(inputId);
+        inp.style.display = sel.value==='Tela: OTROS' ? 'block' : 'none';
+    }
+    function toggleShortTela(sel) {
+        const t = document.getElementById('shortTela');
+        const t2 = document.getElementById('shortTalla');
+        const dis = sel.value==='NINGUNO';
+        t.disabled = dis; t2.disabled = dis;
+    }
+    function toggleClienteInput(sel) {
+        const inp = document.getElementById('clienteInput');
+        const sl = document.getElementById('clienteSelect');
+        if (sel.value==='PEDIDO') { inp.style.display='block'; sl.style.display='none'; }
+        else { inp.style.display='none'; sl.style.display='block'; }
+    }
+    function toggleEnvioInput(sel) {
+        const inp = document.getElementById('direccionEnvio');
+        inp.style.display = sel.value==='ENVÍO' ? 'block' : 'none';
+    }
+
+    // Upload fotos
+    const MAX_FOTOS = 4;
+    let fotosAdjuntas = [];
+    function handleFileSelect(e) { procesarArchivos(Array.from(e.target.files)); e.target.value=''; }
+    function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadArea').classList.add('drag-over'); }
+    function handleDragLeave() { document.getElementById('uploadArea').classList.remove('drag-over'); }
+    function handleDrop(e) { e.preventDefault(); document.getElementById('uploadArea').classList.remove('drag-over'); procesarArchivos(Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'))); }
+    function procesarArchivos(files) {
+        const disp = MAX_FOTOS - fotosAdjuntas.length;
+        if (disp<=0) { alert('Máximo 4 fotos.'); return; }
+        files.slice(0,disp).forEach(file => {
+            const r = new FileReader();
+            r.onload = e => { fotosAdjuntas.push({file,dataUrl:e.target.result}); renderPreviews(); };
+            r.readAsDataURL(file);
+        });
+    }
+    function eliminarFoto(idx) { fotosAdjuntas.splice(idx,1); renderPreviews(); }
+    function renderPreviews() {
+        const grid = document.getElementById('previewGrid');
+        const counter = document.getElementById('uploadCounter');
+        const area = document.getElementById('uploadArea');
+        const count = fotosAdjuntas.length;
+        document.getElementById('uploadCount').textContent = count;
+        if (count===0) { grid.style.display='none'; counter.style.display='none'; area.style.display='block'; area.classList.remove('has-files'); return; }
+        if (count>=MAX_FOTOS) area.style.display='none'; else { area.style.display='block'; area.classList.add('has-files'); }
+        grid.style.display='grid'; counter.style.display='block';
+        grid.innerHTML = '';
+        fotosAdjuntas.forEach((foto,idx) => {
+            const div = document.createElement('div'); div.className='preview-item';
+            div.innerHTML = `<img src="${foto.dataUrl}" alt="Foto ${idx+1}"><button class="preview-remove" onclick="eliminarFoto(${idx})"><i class="fas fa-times"></i></button>`;
+            grid.appendChild(div);
+        });
+        if (count<MAX_FOTOS) {
+            const add = document.createElement('div'); add.className='preview-add';
+            add.innerHTML='<i class="fas fa-plus"></i>'; add.onclick=()=>document.getElementById('logoInput').click();
+            grid.appendChild(add);
+        }
+    }
+
+    // Proforma
+    let totalPagar = 0;
+    function agregarFilaProforma(cantidad, descripcion, talla, precio) {
+        if (cantidad<=0 || isNaN(precio) || precio<0) { alert('Verifica cantidad y precio.'); return; }
+        const sub = (cantidad*precio).toFixed(2);
+        const tbody = document.getElementById('listaProforma');
+        // Quitar fila vacía si existe
+        const empty = tbody.querySelector('.pf-empty');
+        if (empty) empty.closest('tr').remove();
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td style="text-align:center;font-weight:700;">${cantidad}</td>
+            <td>${descripcion}</td>
+            <td style="text-align:center;">${talla}</td>
+            <td style="text-align:right;">S/ ${parseFloat(precio).toFixed(2)}</td>
+            <td style="text-align:right;font-weight:700;color:var(--primary);">S/ ${sub}</td>
+            <td style="text-align:center;">
+                <button style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;color:var(--danger);" onclick="eliminarFila(this,${sub})"><i class="fas fa-trash"></i></button>
+            </td>`;
+        tbody.appendChild(tr);
+        actualizarTotal(parseFloat(sub));
+    }
+    function agregarKitPrincipal() {
+        const cantidad = document.getElementById('kitCantidad').value;
+        const precio = document.getElementById('kitPrecio').value;
+        const tipoCamiseta = document.getElementById('camisetaSelect').value;
+        const descCamiseta = tipoCamiseta==='OTROS' ? document.getElementById('camisetaOtros').value : tipoCamiseta;
+        const tallaCamiseta = document.getElementById('camisetaTalla').value || '-';
+        let desc = `KIT: ${descCamiseta}`;
+        let talla = `Sup: ${tallaCamiseta}`;
+        const tipoShort = document.getElementById('shortSelect').value;
+        if (tipoShort!=='NINGUNO') {
+            const descShort = tipoShort==='OTROS' ? document.getElementById('shortOtros').value : tipoShort;
+            const tallaShort = document.getElementById('shortTalla').value || '-';
+            desc += ` + ${descShort}`; talla += ` | Inf: ${tallaShort}`;
+        }
+        const tipoMedias = document.getElementById('mediasSelect').value;
+        if (tipoMedias!=='NINGUNO') { const descMedias = tipoMedias==='OTROS' ? document.getElementById('mediasOtros').value : tipoMedias; desc += ` + ${descMedias}`; }
+        agregarFilaProforma(cantidad, desc, talla, precio);
+    }
+    function agregarAdicional() {
+        const talla = document.getElementById('xlTalla').value;
+        if (!talla || talla==='Seleccionar...') { alert('Selecciona una talla especial.'); return; }
+        agregarFilaProforma(document.getElementById('xlCantidad').value, 'ADICIONAL TALLA ESPECIAL', talla, document.getElementById('xlPrecio').value);
+    }
+    function agregarMerch() {
+        const art = document.getElementById('merchArticulo').value;
+        agregarFilaProforma(document.getElementById('merchCantidad').value, `MERCH: ${art}`, 'N/A', document.getElementById('merchPrecio').value);
+    }
+    function actualizarTotal(monto) {
+        totalPagar += monto;
+        document.getElementById('totalVal').textContent = `S/ ${totalPagar.toFixed(2)}`;
+        calcSaldo();
+    }
+    function eliminarFila(btn, monto) { btn.closest('tr').remove(); actualizarTotal(-monto); }
+    function calcSaldo() {
+        const adelanto = parseFloat(document.getElementById('adelantoInput').value) || 0;
+        const saldo = Math.max(0, totalPagar - adelanto);
+        document.getElementById('saldoVal').textContent = `S/ ${saldo.toFixed(2)}`;
+    }
+    function guardarPedido() {
+        const adelanto = parseFloat(document.getElementById('adelantoInput').value) || 0;
+        if (adelanto === 0) {
+            alert('⚠️ Debe ingresar un adelanto mayor a 0 para guardar el pedido.');
+            return;
+        }
+        alert('Pedido guardado correctamente.\n\nPróximo paso: Registrar integrantes del equipo.');
+        window.location.href = 'registro-integrantes.html';
+    }
+</script>
+</body>
+</html>

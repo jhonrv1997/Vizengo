@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Registro de Planchado</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root{--primary:#2B4FFF;--accent:#FFD23F;--success:#06d6a0;--warning:#f59e0b;--danger:#ef476f;--info:#38bdf8;--bg:#f0f4ff;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--sidebar-bg:#0f1729;--sidebar-w:240px;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+        .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
+        .brand-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:2px;color:white;}
+        .brand-logo span{color:var(--accent);}
+        .brand-sub{font-size:.68rem;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+        .sidebar-section{padding:12px 20px 4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;margin:1px 10px;border-radius:8px;color:rgba(255,255,255,.55);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .2s;}
+        .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+        .nav-item.active{background:var(--primary);color:white;}
+        .nav-item i{width:18px;text-align:center;}
+        .badge-nav{background:var(--accent);color:#1a1a1a;border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;margin-left:auto;}
+        .sidebar-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;}
+        .user-info .user-name{font-size:.9rem;font-weight:600;color:white;}
+        .user-info .user-role{font-size:.72rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+        .btn-logout{margin-left:auto;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;font-size:1rem;}
+        .btn-logout:hover{color:var(--danger);}
+        .main-content{margin-left:var(--sidebar-w);flex:1;padding:28px;}
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+        .topbar h1{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:.5px;}
+        .topbar p{font-size:.85rem;color:var(--muted);margin-top:2px;}
+
+        /* Pipeline */
+        .pipeline-tracker{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 16px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;}
+        .pt-step{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:130px;}
+        .pt-circle{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;border:2px solid var(--border);background:var(--surface);color:var(--muted);transition:all .3s;margin-bottom:6px;}
+        .pt-step.done .pt-circle{background:var(--success);border-color:var(--success);color:white;}
+        .pt-step.active .pt-circle{background:var(--info);border-color:var(--info);color:white;box-shadow:0 0 0 5px rgba(56,189,248,.15);}
+        .pt-label{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;}
+        .pt-step.done .pt-label{color:var(--success);}
+        .pt-step.active .pt-label{color:var(--info);}
+        .pt-step.pending .pt-label{color:var(--muted);}
+        .pt-line{flex:1;height:2px;background:var(--border);max-width:60px;align-self:flex-start;margin-top:20px;}
+        .pt-line.done{background:var(--success);}
+
+        /* Cards */
+        .card-v{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+        .card-v-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .card-v-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--info);margin:0;}
+        .card-v-body{padding:20px;}
+        .field-lbl{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+        .field-ctrl{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:9px 13px;font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--text);background:white;outline:none;transition:all .2s;}
+        .field-ctrl:focus{border-color:var(--info);box-shadow:0 0 0 3px rgba(56,189,248,.15);}
+        .field-ctrl:read-only{background:#f1f5f9;color:var(--muted);cursor:not-allowed;}
+        .field-group{margin-bottom:16px;}
+
+        /* Contador de prendas */
+        .qty-card{background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center;}
+        .qty-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+        .qty-type{font-size:.7rem;font-weight:600;color:var(--info);background:rgba(56,189,248,.1);padding:2px 8px;border-radius:4px;margin-bottom:8px;display:inline-block;}
+        .qty-controls{display:flex;align-items:center;justify-content:center;gap:12px;}
+        .qty-btn{width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;font-size:1.1rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+        .qty-btn.plus{background:var(--success);color:white;}
+        .qty-btn.plus:hover{background:#04b889;transform:scale(1.1);}
+        .qty-btn.minus{background:var(--danger);color:white;}
+        .qty-btn.minus:hover{background:#dc2626;transform:scale(1.1);}
+        .qty-btn:disabled{background:#cbd5e1;cursor:not-allowed;transform:none;}
+        .qty-btn:disabled:hover{transform:none;}
+        .qty-input{width:70px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:2rem;font-weight:800;border:2px solid var(--border);border-radius:10px;padding:6px;outline:none;color:var(--text);}
+        .qty-input:focus{border-color:var(--info);}
+        .qty-input:read-only{background:#f1f5f9;color:var(--muted);}
+
+        /* Precio unitario por prenda */
+        .price-input-group{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+        .price-input-group label{font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--muted);}
+        .price-input-group input{width:80px;text-align:center;padding:6px 8px;font-weight:700;color:var(--primary);border-color:var(--primary);}
+        .price-input-group span{font-weight:700;color:var(--primary);}
+
+        /* Total box */
+        .total-box{background:var(--sidebar-bg);border-radius:14px;padding:24px;color:white;text-align:center;}
+        .total-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,.4);margin-bottom:8px;}
+        .total-amount{font-family:'Barlow Condensed',sans-serif;font-size:3rem;font-weight:800;color:var(--success);line-height:1;}
+        .total-prendas{font-size:.82rem;color:rgba(255,255,255,.4);margin-top:6px;}
+
+        /* Info pedido */
+        .info-row{display:flex;gap:16px;padding:10px 0;border-bottom:1px solid var(--border);}
+        .info-row:last-child{border-bottom:none;}
+        .info-key{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);min-width:100px;}
+        .info-val{font-size:.88rem;font-weight:600;color:var(--text);}
+
+        /* Merchandising card */
+        .merch-card{background:linear-gradient(135deg,rgba(245,158,11,.05),rgba(245,158,11,.1));border:1px solid rgba(245,158,11,.25);border-radius:12px;padding:16px;}
+        .merch-title{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:800;text-transform:uppercase;color:var(--warning);margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;}
+        .merch-title i{margin-right:6px;}
+
+        /* Estilos para artículos de merchandising múltiples */
+        .merch-item{background:rgba(255,255,255,.7);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:14px;margin-bottom:12px;position:relative;}
+        .merch-item:last-child{margin-bottom:0;}
+        .merch-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+        .merch-item-num{font-family:'Barlow Condensed',sans-serif;font-size:.75rem;font-weight:700;color:var(--warning);text-transform:uppercase;}
+        .btn-remove-merch{background:var(--danger);color:white;border:none;border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:.75rem;display:flex;align-items:center;justify-content:center;transition:all .2s;}
+        .btn-remove-merch:hover{background:#dc2626;transform:scale(1.1);}
+
+        .btn-add-merch{background:var(--success);color:white;border:none;border-radius:8px;padding:10px 18px;font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:700;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:all .2s;margin-top:12px;}
+        .btn-add-merch:hover{background:#04b889;transform:translateY(-2px);}
+        .btn-add-merch i{font-size:.9rem;}
+
+        /* Campo de texto para "Otros" */
+        .otro-articulo-input{margin-top:8px;display:none;}
+        .otro-articulo-input.show{display:block;}
+
+        /* Btns */
+        .btn-v{padding:10px 20px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+        .btn-primary-v{background:var(--primary);color:white;}
+        .btn-primary-v:hover{background:#1a35cc;}
+        .btn-info-v{background:var(--info);color:white;}
+        .btn-info-v:hover{background:#0ea5c0;transform:translateY(-1px);}
+        .btn-success-v{background:var(--success);color:white;}
+        .btn-success-v:hover{background:#04b889;}
+        .btn-outline-v{background:white;border:1.5px solid var(--border);color:var(--muted);}
+        .btn-outline-v:hover{border-color:var(--info);color:var(--info);}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="dashboard.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+        
+        <!-- Después de Seguimiento -->
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+
+        <div class="sidebar-section">Sistema</div>
+        <a class="nav-item" href="lista-disenos.html"><i class="fas fa-images"></i> Diseños</a>
+        <a class="nav-item" href="terminado.html"><i class="fas fa-check-double"></i> Terminados</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-tshirt" style="color:var(--info);margin-right:10px;"></i>Registro de Planchado</h1>
+            <p>Paso D: Registra las prendas planchadas y el pago al planchador</p>
+        </div>
+        <a href="diseno.html" class="btn-v btn-outline-v"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <!-- Pipeline con 6 etapas -->
+    <div class="pipeline-tracker">
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Contrato</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Integrantes</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Diseño</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step active"><div class="pt-circle"><i class="fas fa-tshirt"></i></div><div class="pt-label">Planchado</div></div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending"><div class="pt-circle"><i class="fas fa-cut"></i></div><div class="pt-label">Costura</div></div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending"><div class="pt-circle"><i class="fas fa-box"></i></div><div class="pt-label">Entrega</div></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- FORMULARIO PRINCIPAL -->
+        <div class="col-lg-8">
+
+            <!-- Selector de pedido -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-file-contract" style="margin-right:8px;"></i>Pedido a Planchar</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="field-lbl">Seleccionar Pedido</label>
+                            <select class="field-ctrl" id="selectPedido" onchange="selPedido(this)">
+                                <option value="">— Seleccionar pedido —</option>
+                                <option value="PED-001|LUISA MARMOLEJO|30|0|0|CAMISETA MANGA CORTA">PED-001 · LUISA MARMOLEJO (30 prendas)</option>
+                                <option value="PED-003|ALBERTO YAPIAS|12|12|0|POLO 20/1">PED-003 · ALBERTO YAPIAS (24 prendas)</option>
+                                <option value="PED-004|TERESA SALAS|12|12|6|CAMISETA REPLICA">PED-004 · TERESA SALAS (30 prendas)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="row g-2">
+                                <div class="col-4">
+                                    <label class="field-lbl">Cliente</label>
+                                    <div style="font-weight:700;font-size:.9rem;padding-top:8px;" id="pCliente">—</div>
+                                </div>
+                                <div class="col-4">
+                                    <label class="field-lbl">Diseño</label>
+                                    <span id="pDiseno" style="display:inline-block;padding:4px 10px;border-radius:20px;background:rgba(100,116,139,.1);color:var(--muted);font-size:.75rem;font-weight:700;margin-top:8px;">Sin verificar</span>
+                                </div>
+                                <div class="col-4">
+                                    <label class="field-lbl">Fecha Entrega</label>
+                                    <div style="font-size:.85rem;font-weight:600;color:var(--danger);padding-top:8px;" id="pEntrega">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datos del planchador -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-user-cog" style="margin-right:8px;"></i>Datos del Planchador</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="field-group">
+                                <label class="field-lbl">Nombre del Planchador <span style="color:var(--danger);">*</span></label>
+                                <select class="field-ctrl" id="nombrePlanchador" required onchange="toggleOtroPlanchador(this)">
+                                    <option value="" disabled selected>Seleccione el encargado...</option>
+                                    <option>Carlos</option>
+                                    <option>Miguel</option>
+                                    <option>Rosa</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                                <!-- Campo para ingresar nombre cuando se selecciona "Otros" -->
+                                <input type="text" id="otroPlanchador" class="field-ctrl mt-2" placeholder="Ingrese el nombre del planchador..." style="display:none;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="field-group">
+                                <label class="field-lbl">Fecha de Trabajo</label>
+                                <input type="date" class="field-ctrl" id="fechaPlanchado">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="field-group" style="margin-bottom:0;">
+                                <label class="field-lbl">Observaciones del Planchado</label>
+                                <textarea class="field-ctrl" rows="2" id="obsPlanchado" placeholder="Ej: 2 polos con fallas de costura apartados, talla XL reforzada..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cantidades -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-layer-group" style="margin-right:8px;"></i>Cantidades de Prendas</h5>
+                    <span style="font-size:.78rem;color:var(--muted);">Verifica las cantidades físicas antes de registrar</span>
+                </div>
+                <div class="card-v-body">
+                    <div class="alert-banner" style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 16px;margin-bottom:20px;display:flex;align-items:center;gap:10px;">
+                        <i class="fas fa-exclamation-triangle" style="color:var(--warning);"></i>
+                        <span style="font-size:.82rem;color:#92400e;">Las cantidades de Polos y Shorts son de solo lectura (registradas en contrato). Los Cuellos RIB y Merchandising pueden editarse.</span>
+                    </div>
+                    <div class="row g-4 mb-4">
+                        <!-- Polos / Camisetas -->
+                        <div class="col-md-4">
+                            <div class="qty-card">
+                                <div class="qty-label">Polos / Camisetas</div>
+                                <div class="qty-type" id="tipoPrenda">—</div>
+                                <div class="qty-controls">
+                                    <button class="qty-btn minus" id="btnMinusPolos" onclick="cambiarQty('cantPolos',-1)" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" class="qty-input" id="cantPolos" value="0" min="0" oninput="calcularTotal()" readonly>
+                                    <button class="qty-btn plus" id="btnPlusPolos" onclick="cambiarQty('cantPolos',1)" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="price-input-group">
+                                    <label>Precio Unit.</label>
+                                    <span>S/</span>
+                                    <input type="number" id="precioPolos" value="1.50" step="0.10" min="0" oninput="calcularTotal()">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Shorts -->
+                        <div class="col-md-4">
+                            <div class="qty-card">
+                                <div class="qty-label">Shorts</div>
+                                <div class="qty-type" style="background:rgba(6,214,160,.1);color:var(--success);">SHORT DEPORTIVO</div>
+                                <div class="qty-controls">
+                                    <button class="qty-btn minus" id="btnMinusShorts" onclick="cambiarQty('cantShorts',-1)" disabled><i class="fas fa-minus"></i></button>
+                                    <input type="number" class="qty-input" id="cantShorts" value="0" min="0" oninput="calcularTotal()" readonly>
+                                    <button class="qty-btn plus" id="btnPlusShorts" onclick="cambiarQty('cantShorts',1)" disabled><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="price-input-group">
+                                    <label>Precio Unit.</label>
+                                    <span>S/</span>
+                                    <input type="number" id="precioShorts" value="1.00" step="0.10" min="0" oninput="calcularTotal()">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Cuellos RIB -->
+                        <div class="col-md-4">
+                            <div class="qty-card">
+                                <div class="qty-label">Cuellos RIB</div>
+                                <div class="qty-type" style="background:rgba(239,71,111,.1);color:var(--danger);">CUELLO TÉRMICO</div>
+                                <div class="qty-controls">
+                                    <button class="qty-btn minus" onclick="cambiarQty('cantCuellos',-1)"><i class="fas fa-minus"></i></button>
+                                    <input type="number" class="qty-input" id="cantCuellos" value="0" min="0" oninput="calcularTotal()">
+                                    <button class="qty-btn plus" onclick="cambiarQty('cantCuellos',1)"><i class="fas fa-plus"></i></button>
+                                </div>
+                                <div class="price-input-group">
+                                    <label>Precio Unit.</label>
+                                    <span>S/</span>
+                                    <input type="number" id="precioCuellos" value="0.50" step="0.10" min="0" oninput="calcularTotal()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección de Merchandising con múltiples artículos -->
+                    <div class="merch-card mb-4">
+                        <div class="merch-title">
+                            <span><i class="fas fa-flag"></i>Merchandising Adicional</span>
+                        </div>
+                        
+                        <!-- Contenedor de artículos de merchandising -->
+                        <div id="merchContainer">
+                            <!-- Los artículos se agregarán dinámicamente aquí -->
+                        </div>
+                        
+                        <!-- Botón Agregar -->
+                        <button type="button" class="btn-add-merch" onclick="agregarMerch()">
+                            <i class="fas fa-plus"></i> Agregar Artículo
+                        </button>
+                    </div>
+
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-12">
+                            <div class="total-box">
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <div class="total-label">Polos/Camisetas</div>
+                                        <div style="font-size:1.2rem;font-weight:700;color:var(--accent);" id="subTotalPolos">S/ 0.00</div>
+                                        <div style="font-size:.72rem;color:rgba(255,255,255,.4);"><span id="cantPolosDisp">0</span> prendas</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="total-label">Shorts</div>
+                                        <div style="font-size:1.2rem;font-weight:700;color:var(--accent);" id="subTotalShorts">S/ 0.00</div>
+                                        <div style="font-size:.72rem;color:rgba(255,255,255,.4);"><span id="cantShortsDisp">0</span> prendas</div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="total-label">Cuellos RIB</div>
+                                        <div style="font-size:1.2rem;font-weight:700;color:var(--accent);" id="subTotalCuellos">S/ 0.00</div>
+                                        <div style="font-size:.72rem;color:rgba(255,255,255,.4);"><span id="cantCuellosDisp">0</span> prendas</div>
+                                    </div>
+                                </div>
+                                <div style="height:1px;background:rgba(255,255,255,.1);margin:16px 0;"></div>
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-md-4">
+                                        <div class="total-label">Merchandising</div>
+                                        <div style="font-size:1.2rem;font-weight:700;color:var(--warning);" id="subTotalMerchDisp">S/ 0.00</div>
+                                        <div style="font-size:.72rem;color:rgba(255,255,255,.4);"><span id="cantMerchDisp">0</span> artículos</div>
+                                    </div>
+                                    <div class="col-md-8 text-end">
+                                        <div class="total-label">Pago Total al Planchador</div>
+                                        <div class="total-amount" id="totalPago">S/ 0.00</div>
+                                        <div class="total-prendas">Total de prendas: <strong id="totalPrendas">0</strong></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="display:flex;justify-content:flex-end;gap:12px;margin-bottom:28px;">
+                <button class="btn-v btn-outline-v" onclick="window.location.href='lista-pedidos.html'">Cancelar</button>
+                <button class="btn-v btn-info-v" onclick="guardarPlanchado()">
+                    <i class="fas fa-save"></i> Guardar y Completar Planchado
+                </button>
+            </div>
+        </div>
+
+        <!-- PANEL LATERAL -->
+        <div class="col-lg-4">
+            <!-- Info del pedido -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-info-circle" style="margin-right:8px;"></i>Info del Pedido</h5>
+                </div>
+                <div class="card-v-body">
+                    <div id="infoPedidoBox">
+                        <div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">
+                            <i class="fas fa-hand-pointer" style="font-size:1.5rem;display:block;margin-bottom:8px;opacity:.3;"></i>
+                            Selecciona un pedido para ver su información
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumen prendas -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-chart-bar" style="margin-right:8px;"></i>Resumen de Tallas</h5>
+                </div>
+                <div class="card-v-body">
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;">
+                        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+                            <div style="font-size:.68rem;color:var(--muted);font-weight:700;">S</div>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--info);">2</div>
+                        </div>
+                        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+                            <div style="font-size:.68rem;color:var(--muted);font-weight:700;">M</div>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--info);">5</div>
+                        </div>
+                        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+                            <div style="font-size:.68rem;color:var(--muted);font-weight:700;">L</div>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--info);">3</div>
+                        </div>
+                        <div style="background:var(--bg);border-radius:8px;padding:10px;text-align:center;">
+                            <div style="font-size:.68rem;color:var(--muted);font-weight:700;">XL</div>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.5rem;font-weight:800;color:var(--info);">1</div>
+                        </div>
+                    </div>
+                    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:.82rem;font-weight:600;color:var(--muted);">Niños (4–16):</span>
+                        <span style="font-weight:700;">0</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-size:.82rem;font-weight:600;color:var(--muted);">Adultos (S–XL):</span>
+                        <span style="font-weight:700;">11</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:8px;padding:10px 14px;">
+                        <span style="font-size:.82rem;font-weight:700;color:var(--text);">TOTAL:</span>
+                        <span style="font-family:'Barlow Condensed',sans-serif;font-size:1.4rem;font-weight:800;color:var(--info);">12</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diseños aprobados -->
+            <div class="card-v">
+                <div class="card-v-header" style="background:linear-gradient(to right,#fafbff,#fff);">
+                    <h5 class="card-v-title" style="color:var(--muted);"><i class="fas fa-paint-brush" style="margin-right:8px;"></i>Diseños Aprobados</h5>
+                </div>
+                <div class="card-v-body" style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
+                    <div style="background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:12px;text-align:center;">
+                        <i class="fas fa-tshirt" style="color:var(--success);font-size:1.4rem;margin-bottom:6px;"></i>
+                        <div style="font-size:.78rem;font-weight:700;color:#059669;">Camiseta</div>
+                        <div style="font-size:.68rem;color:var(--success);">✓ Aprobado</div>
+                    </div>
+                    <div style="background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:12px;text-align:center;">
+                        <i class="fas fa-running" style="color:var(--success);font-size:1.4rem;margin-bottom:6px;"></i>
+                        <div style="font-size:.78rem;font-weight:700;color:#059669;">Short</div>
+                        <div style="font-size:.68rem;color:var(--success);">✓ Aprobado</div>
+                    </div>
+                    <div style="background:rgba(6,214,160,.08);border:1px solid rgba(6,214,160,.2);border-radius:10px;padding:12px;text-align:center;">
+                        <i class="fas fa-shield-alt" style="color:var(--success);font-size:1.4rem;margin-bottom:6px;"></i>
+                        <div style="font-size:.78rem;font-weight:700;color:#059669;">Logo</div>
+                        <div style="font-size:.68rem;color:var(--success);">✓ Aprobado</div>
+                    </div>
+                    <div style="background:rgba(100,116,139,.06);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;">
+                        <i class="fas fa-flag" style="color:var(--muted);font-size:1.4rem;margin-bottom:6px;"></i>
+                        <div style="font-size:.78rem;font-weight:700;color:var(--muted);">Banderola</div>
+                        <div style="font-size:.68rem;color:var(--muted);">No aplica</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const rol = sessionStorage.getItem('vz_rol') || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = {vendedor:'Vendedor',disenador:'Diseñador',administrador:'Administrador'};
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+
+    // Lógica de navegación por rol
+    if (rol === 'administrador') {
+        document.getElementById('nav-usuarios').style.display = 'flex';
+    }
+    if (rol === 'vendedor' || rol === 'administrador') {
+        document.getElementById('nav-vendedor-label').style.display = 'block';
+        document.getElementById('nav-ingreso').style.display = 'flex';
+        document.getElementById('nav-integrantes').style.display = 'flex';
+        document.getElementById('nav-entrega').style.display = 'flex';
+    }
+    if (rol === 'disenador' || rol === 'administrador') {
+        document.getElementById('nav-disenador-label').style.display = 'block';
+        document.getElementById('nav-diseno').style.display = 'flex';
+        document.getElementById('nav-planchado').style.display = 'flex';
+        document.getElementById('nav-planchado').classList.add('active');
+        document.getElementById('nav-costura').style.display = 'flex';
+    }
+
+    function cerrarSesion() { sessionStorage.clear(); window.location.href='login.html'; }
+
+    // Fecha de hoy
+    const hoy = new Date(); hoy.setMinutes(hoy.getMinutes()-hoy.getTimezoneOffset());
+    document.getElementById('fechaPlanchado').value = hoy.toISOString().slice(0,10);
+
+    // Datos de pedidos con tipo de prenda incluido
+    const pedidos = {
+        'PED-001|LUISA MARMOLEJO|30|0|0|CAMISETA MANGA CORTA': {cliente:'LUISA MARMOLEJO',prendas:30,entrega:'HOY 10:00 AM',polos:30,shorts:0,cuellos:0,tipoPrenda:'CAMISETA MANGA CORTA'},
+        'PED-003|ALBERTO YAPIAS|12|12|0|POLO 20/1': {cliente:'ALBERTO YAPIAS',prendas:24,entrega:'Jue 3:00 PM',polos:12,shorts:12,cuellos:0,tipoPrenda:'POLO 20/1'},
+        'PED-004|TERESA SALAS|12|12|6|CAMISETA REPLICA': {cliente:'TERESA SALAS',prendas:30,entrega:'Vie 3:00 PM',polos:12,shorts:12,cuellos:6,tipoPrenda:'CAMISETA REPLICA'},
+    };
+
+    // Contador de artículos de merchandising
+    let merchCounter = 0;
+
+    // Función para mostrar/ocultar campo de nombre cuando se selecciona "Otros"
+    function toggleOtroPlanchador(select) {
+        const otroInput = document.getElementById('otroPlanchador');
+        if (select.value === 'Otros') {
+            otroInput.style.display = 'block';
+            otroInput.focus();
+        } else {
+            otroInput.style.display = 'none';
+            otroInput.value = '';
+        }
+    }
+
+    // Función para mostrar/ocultar campo de texto cuando se selecciona "Otros" en tipo de artículo
+    function toggleOtroArticulo(select, itemId) {
+        const otroInput = document.getElementById(`otroArticulo_${itemId}`);
+        if (select.value === 'Otros') {
+            otroInput.classList.add('show');
+            otroInput.querySelector('input').focus();
+        } else {
+            otroInput.classList.remove('show');
+            otroInput.querySelector('input').value = '';
+        }
+        calcularTotal();
+    }
+
+    // Función para agregar un nuevo artículo de merchandising
+    function agregarMerch() {
+        merchCounter++;
+        const container = document.getElementById('merchContainer');
+        
+        const merchItem = document.createElement('div');
+        merchItem.className = 'merch-item';
+        merchItem.id = `merchItem_${merchCounter}`;
+        
+        merchItem.innerHTML = `
+            <div class="merch-item-header">
+                <span class="merch-item-num"><i class="fas fa-tag" style="margin-right:4px;"></i>Artículo #${merchCounter}</span>
+                <button type="button" class="btn-remove-merch" onclick="eliminarMerch(${merchCounter})" title="Eliminar artículo">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="field-lbl">Tipo de Artículo</label>
+                    <select class="field-ctrl" id="tipoMerch_${merchCounter}" onchange="toggleOtroArticulo(this, ${merchCounter})">
+                        <option value="">— Seleccionar —</option>
+                        <option value="banderola">Banderola</option>
+                        <option value="bandera">Bandera</option>
+                        <option value="panuelo">Pañuelo</option>
+                        <option value="Otros">Otros</option>
+                    </select>
+                    <div class="otro-articulo-input" id="otroArticulo_${merchCounter}">
+                        <input type="text" class="field-ctrl" placeholder="Especifique el tipo de artículo..." oninput="calcularTotal()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <label class="field-lbl">Cantidad</label>
+                    <input type="number" class="field-ctrl text-center" id="cantMerch_${merchCounter}" value="0" min="0" oninput="calcularTotal()">
+                </div>
+                <div class="col-md-3">
+                    <label class="field-lbl">Precio Unitario (S/)</label>
+                    <div style="display:flex;align-items:center;gap:6px;">
+                        <span style="font-weight:700;color:var(--warning);">S/</span>
+                        <input type="number" class="field-ctrl" id="precioMerch_${merchCounter}" value="0.00" step="0.10" min="0" oninput="calcularTotal()">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="field-lbl">Subtotal</label>
+                    <div style="font-weight:700;color:var(--warning);font-size:1.1rem;padding-top:8px;" id="subtotalMerch_${merchCounter}">S/ 0.00</div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(merchItem);
+        
+        // Scroll suave al nuevo elemento
+        merchItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    // Función para eliminar un artículo de merchandising
+    function eliminarMerch(itemId) {
+        const merchItem = document.getElementById(`merchItem_${itemId}`);
+        if (merchItem) {
+            merchItem.style.animation = 'fadeOut 0.3s ease';
+            setTimeout(() => {
+                merchItem.remove();
+                calcularTotal();
+                // Renumerar artículos restantes
+                renumerarMerch();
+            }, 300);
+        }
+    }
+
+    // Función para renumerar artículos después de eliminar
+    function renumerarMerch() {
+        const items = document.querySelectorAll('.merch-item');
+        items.forEach((item, index) => {
+            const numSpan = item.querySelector('.merch-item-num');
+            if (numSpan) {
+                numSpan.innerHTML = `<i class="fas fa-tag" style="margin-right:4px;"></i>Artículo #${index + 1}`;
+            }
+        });
+    }
+
+    // Función para obtener el tipo de artículo (considerando "Otros")
+    function getTipoArticulo(itemId) {
+        const select = document.getElementById(`tipoMerch_${itemId}`);
+        if (!select) return '';
+        
+        if (select.value === 'Otros') {
+            const otroInput = document.getElementById(`otroArticulo_${itemId}`);
+            if (otroInput) {
+                const input = otroInput.querySelector('input');
+                return input ? input.value.trim() : 'Otros';
+            }
+            return 'Otros';
+        }
+        return select.value;
+    }
+
+    function selPedido(sel) {
+        const val = sel.value;
+        if (!val) { 
+            document.getElementById('pCliente').textContent='—'; 
+            document.getElementById('pDiseno').textContent='Sin verificar'; 
+            document.getElementById('pEntrega').textContent='—'; 
+            document.getElementById('tipoPrenda').textContent='—';
+            document.getElementById('infoPedidoBox').innerHTML='<div style="text-align:center;padding:20px;color:var(--muted);font-size:.85rem;font-style:italic;">Selecciona un pedido</div>'; 
+            return; 
+        }
+        const p = pedidos[val];
+        document.getElementById('pCliente').textContent = p.cliente;
+        document.getElementById('pDiseno').innerHTML = '<span style="background:rgba(6,214,160,.12);color:#059669;padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:700;">✓ Aprobado</span>';
+        document.getElementById('pEntrega').textContent = p.entrega;
+        
+        // Mostrar tipo de prenda registrado en contrato
+        document.getElementById('tipoPrenda').textContent = p.tipoPrenda;
+        
+        // Cargar cantidades desde el contrato
+        document.getElementById('cantPolos').value = p.polos;
+        document.getElementById('cantShorts').value = p.shorts;
+        document.getElementById('cantCuellos').value = p.cuellos;
+        
+        document.getElementById('infoPedidoBox').innerHTML = `
+            <div class="info-row"><span class="info-key">Pedido</span><span class="info-val">${val.split('|')[0]}</span></div>
+            <div class="info-row"><span class="info-key">Cliente</span><span class="info-val">${p.cliente}</span></div>
+            <div class="info-row"><span class="info-key">Tipo Prenda</span><span class="info-val" style="color:var(--info);">${p.tipoPrenda}</span></div>
+            <div class="info-row"><span class="info-key">Prendas</span><span class="info-val">${p.prendas}</span></div>
+            <div class="info-row"><span class="info-key">Entrega</span><span class="info-val" style="color:var(--danger);">${p.entrega}</span></div>
+        `;
+        calcularTotal();
+    }
+
+    function cambiarQty(id, delta) {
+        const inp = document.getElementById(id);
+        // Solo permitir cambio si el campo NO es readonly
+        if (inp.readOnly) return;
+        const val = Math.max(0, parseInt(inp.value)||0+delta);
+        inp.value = val; calcularTotal();
+    }
+
+    function calcularTotal() {
+        // Obtener cantidades
+        const polos = parseInt(document.getElementById('cantPolos').value)||0;
+        const shorts = parseInt(document.getElementById('cantShorts').value)||0;
+        const cuellos = parseInt(document.getElementById('cantCuellos').value)||0;
+        
+        // Obtener precios unitarios independientes
+        const precioPolos = parseFloat(document.getElementById('precioPolos').value)||0;
+        const precioShorts = parseFloat(document.getElementById('precioShorts').value)||0;
+        const precioCuellos = parseFloat(document.getElementById('precioCuellos').value)||0;
+        
+        // Calcular total de merchandising (múltiples artículos)
+        let totalMerch = 0;
+        let cantTotalMerch = 0;
+        const merchItems = document.querySelectorAll('.merch-item');
+        
+        merchItems.forEach((item) => {
+            const itemId = item.id.replace('merchItem_', '');
+            const cantMerch = parseInt(document.getElementById(`cantMerch_${itemId}`)?.value)||0;
+            const precioMerch = parseFloat(document.getElementById(`precioMerch_${itemId}`)?.value)||0;
+            const subtotalMerch = cantMerch * precioMerch;
+            
+            // Actualizar subtotal del artículo
+            const subtotalElement = document.getElementById(`subtotalMerch_${itemId}`);
+            if (subtotalElement) {
+                subtotalElement.textContent = `S/ ${subtotalMerch.toFixed(2)}`;
+            }
+            
+            totalMerch += subtotalMerch;
+            cantTotalMerch += cantMerch;
+        });
+        
+        // Mostrar total de merchandising
+        document.getElementById('subTotalMerchDisp').textContent = `S/ ${totalMerch.toFixed(2)}`;
+        document.getElementById('cantMerchDisp').textContent = cantTotalMerch;
+        
+        // Calcular subtotales
+        const subTotalPolos = polos * precioPolos;
+        const subTotalShorts = shorts * precioShorts;
+        const subTotalCuellos = cuellos * precioCuellos;
+        
+        // Mostrar subtotales
+        document.getElementById('subTotalPolos').textContent = `S/ ${subTotalPolos.toFixed(2)}`;
+        document.getElementById('subTotalShorts').textContent = `S/ ${subTotalShorts.toFixed(2)}`;
+        document.getElementById('subTotalCuellos').textContent = `S/ ${subTotalCuellos.toFixed(2)}`;
+        
+        // Mostrar cantidades en display
+        document.getElementById('cantPolosDisp').textContent = polos;
+        document.getElementById('cantShortsDisp').textContent = shorts;
+        document.getElementById('cantCuellosDisp').textContent = cuellos;
+        
+        // Calcular total
+        const totalPrendas = polos+shorts+cuellos;
+        const pagoTotal = subTotalPolos + subTotalShorts + subTotalCuellos + totalMerch;
+        
+        document.getElementById('totalPrendas').textContent = totalPrendas;
+        document.getElementById('totalPago').textContent = `S/ ${pagoTotal.toFixed(2)}`;
+    }
+
+    function guardarPlanchado() {
+        const planchadorSelect = document.getElementById('nombrePlanchador');
+        let planchador = planchadorSelect.value;
+        
+        // Si seleccionó "Otros", obtener el nombre del campo de texto
+        if (planchador === 'Otros') {
+            const otroNombre = document.getElementById('otroPlanchador').value.trim();
+            if (!otroNombre) {
+                alert('Por favor, ingrese el nombre del planchador.');
+                document.getElementById('otroPlanchador').focus();
+                return;
+            }
+            planchador = otroNombre;
+        }
+        
+        if (!planchador) { 
+            alert('Selecciona el nombre del planchador.'); 
+            return; 
+        }
+        
+        const total = parseInt(document.getElementById('totalPrendas').textContent);
+        
+        // Obtener total de artículos de merchandising
+        const cantTotalMerch = parseInt(document.getElementById('cantMerchDisp').textContent)||0;
+        
+        if (total === 0 && cantTotalMerch === 0) { 
+            alert('Ingresa la cantidad de prendas planchadas o artículos de merchandising.'); 
+            return; 
+        }
+        
+        const pagoTotal = document.getElementById('totalPago').textContent;
+        
+        // Recopilar detalles de merchandising
+        let merchDetalles = [];
+        const merchItems = document.querySelectorAll('.merch-item');
+        merchItems.forEach((item) => {
+            const itemId = item.id.replace('merchItem_', '');
+            const tipo = getTipoArticulo(itemId);
+            const cant = parseInt(document.getElementById(`cantMerch_${itemId}`)?.value)||0;
+            if (tipo && cant > 0) {
+                merchDetalles.push(`${tipo} (${cant})`);
+            }
+        });
+        
+        const merchInfo = merchDetalles.length > 0 ? merchDetalles.join(', ') : 'Ninguno';
+        
+        alert('✓ Planchado registrado correctamente.\n\nEl pedido pasa ahora a COSTURA.');
+        window.location.href = 'costura.html';
+    }
+
+    // Agregar estilos para animación de eliminación
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+    `;
+    document.head.appendChild(style);
+
+    // Inicializar cálculo
+    calcularTotal();
+</script>
+</body>
+</html>

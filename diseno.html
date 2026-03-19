@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Subir Diseño</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root{--primary:#2B4FFF;--accent:#FFD23F;--success:#06d6a0;--warning:#f59e0b;--danger:#ef476f;--info:#38bdf8;--bg:#f0f4ff;--surface:#fff;--border:#e2e8f0;--text:#1e293b;--muted:#64748b;--sidebar-bg:#0f1729;--sidebar-w:240px;}
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;}
+        .sidebar{width:var(--sidebar-w);background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;}
+        .sidebar-brand{padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.06);}
+        .brand-logo{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:2px;color:white;}
+        .brand-logo span{color:var(--accent);}
+        .brand-sub{font-size:.68rem;color:rgba(255,255,255,.3);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+        .sidebar-section{padding:12px 20px 4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:rgba(255,255,255,.25);}
+        .nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;margin:1px 10px;border-radius:8px;color:rgba(255,255,255,.55);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .2s;}
+        .nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9);}
+        .nav-item.active{background:var(--primary);color:white;}
+        .nav-item i{width:18px;text-align:center;}
+        .badge-nav{background:var(--accent);color:#1a1a1a;border-radius:20px;padding:1px 8px;font-size:.7rem;font-weight:700;margin-left:auto;}
+        .sidebar-user{margin-top:auto;padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;gap:12px;}
+        .user-avatar{width:36px;height:36px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:white;font-size:1rem;}
+        .user-info .user-name{font-size:.9rem;font-weight:600;color:white;}
+        .user-info .user-role{font-size:.72rem;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:1px;}
+        .btn-logout{margin-left:auto;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;font-size:1rem;}
+        .btn-logout:hover{color:var(--danger);}
+        .main-content{margin-left:var(--sidebar-w);flex:1;padding:28px;}
+        .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+        .topbar h1{font-family:'Barlow Condensed',sans-serif;font-size:1.8rem;font-weight:800;letter-spacing:.5px;}
+        .topbar p{font-size:.85rem;color:var(--muted);margin-top:2px;}
+
+        /* Pipeline */
+        .pipeline-tracker{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:center;gap:0;}
+        .pt-step{display:flex;flex-direction:column;align-items:center;text-align:center;flex:1;max-width:160px;}
+        .pt-circle{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;border:2px solid var(--border);background:var(--surface);color:var(--muted);transition:all .3s;margin-bottom:8px;}
+        .pt-step.done .pt-circle{background:var(--success);border-color:var(--success);color:white;}
+        .pt-step.active .pt-circle{background:var(--primary);border-color:var(--primary);color:white;box-shadow:0 0 0 5px rgba(43,79,255,.15);}
+        .pt-label{font-family:'Barlow Condensed',sans-serif;font-size:.82rem;font-weight:700;text-transform:uppercase;}
+        .pt-step.done .pt-label{color:var(--success);}
+        .pt-step.active .pt-label{color:var(--primary);}
+        .pt-step.pending .pt-label{color:var(--muted);}
+        .pt-line{flex:1;height:2px;background:var(--border);max-width:80px;align-self:flex-start;margin-top:22px;}
+        .pt-line.done{background:var(--success);}
+
+        /* Cards */
+        .card-v{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:20px;}
+        .card-v-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+        .card-v-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--primary);margin:0;}
+        .card-v-body{padding:20px;}
+        .field-lbl{display:block;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:6px;}
+        .field-ctrl{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;font-family:'Barlow',sans-serif;font-size:.9rem;color:var(--text);background:white;outline:none;transition:all .2s;}
+        .field-ctrl:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(43,79,255,.1);}
+        .field-group{margin-bottom:16px;}
+
+        /* Pedido info */
+        .pedido-info{background:rgba(43,79,255,.05);border:1px solid rgba(43,79,255,.15);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+        .pi-lbl{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:3px;}
+        .pi-val{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;color:var(--text);}
+
+        /* Diseño inicial del vendedor */
+        .diseno-inicial-container{background:linear-gradient(135deg,rgba(255,210,63,.08),rgba(43,79,255,.05));border:2px solid var(--accent);border-radius:14px;padding:20px;margin-bottom:20px;}
+        .diseno-inicial-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+        .diseno-inicial-title{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--accent);}
+        .diseno-inicial-badge{background:var(--accent);color:#1a1a1a;border-radius:20px;padding:3px 10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+        .diseno-inicial-preview{width:100%;max-height:280px;object-fit:contain;border-radius:10px;background:white;border:1px solid var(--border);}
+        .diseno-inicial-placeholder{width:100%;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(255,255,255,.6);border-radius:10px;border:2px dashed var(--border);}
+        .diseno-inicial-placeholder i{font-size:3rem;color:var(--muted);opacity:.4;margin-bottom:10px;}
+        .diseno-inicial-placeholder span{font-size:.85rem;color:var(--muted);}
+        .diseno-inicial-info{margin-top:12px;padding:10px 14px;background:rgba(255,255,255,.7);border-radius:8px;display:flex;align-items:center;gap:12px;}
+        .diseno-inicial-info i{color:var(--primary);font-size:1rem;}
+        .diseno-inicial-info span{font-size:.82rem;color:var(--text);}
+        .diseno-inicial-info small{color:var(--muted);font-size:.75rem;}
+
+        /* Upload zones - 3 sectores (Camiseta grande, Short, Banderola) */
+        .upload-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto;gap:16px;margin-bottom:20px;}
+        .upload-sector{border-radius:14px;border:2px dashed var(--border);background:#fafbff;padding:20px;text-align:center;cursor:pointer;transition:all .3s;position:relative;min-height:180px;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+        /* Camiseta ocupa toda la primera columna combinando dos filas */
+        .upload-sector.camiseta-grande{grid-row:span 2;min-height:380px;}
+        .upload-sector:hover{border-color:var(--primary);background:rgba(43,79,255,.03);}
+        .upload-sector.has-image{border-color:var(--success);border-style:solid;background:rgba(6,214,160,.04);}
+        .upload-sector.drag-over{border-color:var(--primary);background:rgba(43,79,255,.06);transform:scale(1.02);}
+        .sector-label{font-family:'Barlow Condensed',sans-serif;font-size:.85rem;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:10px;}
+        .sector-sub{font-size:.75rem;color:var(--muted);margin-top:4px;}
+        .sector-icon{font-size:2rem;color:rgba(43,79,255,.25);}
+        .sector-preview{width:100%;height:160px;object-fit:cover;border-radius:8px;display:none;}
+        .upload-sector.camiseta-grande .sector-preview{height:320px;}
+        .sector-remove{position:absolute;top:8px;right:8px;background:rgba(239,71,111,.9);color:white;border:none;border-radius:50%;width:28px;height:28px;font-size:.75rem;cursor:pointer;display:none;align-items:center;justify-content:center;}
+        .sector-remove.show{display:flex;}
+        .sector-badge{position:absolute;top:8px;left:8px;background:var(--success);color:white;border-radius:20px;padding:2px 10px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:none;}
+        .sector-badge.show{display:block;}
+
+        /* Integrantes readonly */
+        .integrantes-tabla{width:100%;border-collapse:collapse;}
+        .integrantes-tabla thead th{background:var(--sidebar-bg);color:rgba(255,255,255,.5);padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;cursor:pointer;transition:background .2s;}
+        .integrantes-tabla thead th:hover{background:rgba(43,79,255,.3);}
+        .integrantes-tabla thead th.sortable{position:relative;}
+        .integrantes-tabla thead th.sortable::after{content:'\f0dc';font-family:'Font Awesome 6 Free';font-weight:900;margin-left:8px;opacity:.4;font-size:.7rem;}
+        .integrantes-tabla thead th.sort-asc::after{content:'\f0de';opacity:1;color:var(--accent);}
+        .integrantes-tabla thead th.sort-desc::after{content:'\f0dd';opacity:1;color:var(--accent);}
+        .integrantes-tabla tbody tr{border-bottom:1px solid var(--border);}
+        .integrantes-tabla tbody tr:last-child{border-bottom:none;}
+        .integrantes-tabla tbody tr:hover{background:#f8faff;}
+        .integrantes-tabla tbody td{padding:9px 14px;font-size:.85rem;vertical-align:middle;}
+        .talla-badge{display:inline-block;background:rgba(43,79,255,.1);color:var(--primary);border-radius:6px;padding:2px 8px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:.88rem;}
+        .sort-controls{display:flex;gap:8px;align-items:center;}
+        .sort-btn{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:.75rem;font-weight:600;cursor:pointer;transition:all .2s;}
+        .sort-btn:hover{border-color:var(--primary);color:var(--primary);}
+        .sort-btn.active{background:var(--primary);color:white;border-color:var(--primary);}
+
+        /* Btns */
+        .btn-v{padding:10px 20px;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:8px;}
+        .btn-primary-v{background:var(--primary);color:white;}
+        .btn-primary-v:hover{background:#1a35cc;transform:translateY(-1px);}
+        .btn-success-v{background:var(--success);color:white;}
+        .btn-success-v:hover{background:#04b889;}
+        .btn-info-v{background:var(--info);color:white;}
+        .btn-info-v:hover{background:#0ea5c0;}
+        .btn-outline-v{background:white;border:1.5px solid var(--border);color:var(--muted);}
+        .btn-outline-v:hover{border-color:var(--primary);color:var(--primary);}
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="index.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+
+        <!-- Administración -->
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+
+        <!-- Vendedor -->
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+
+        <!-- Diseñador -->
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item active" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+
+        <!-- Sistema -->
+        <div class="sidebar-section">Sistema</div>
+        <a class="nav-item" href="lista-disenos.html"><i class="fas fa-images"></i> Diseños</a>
+        <a class="nav-item" href="terminado.html"><i class="fas fa-check-double"></i> Terminados</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-paint-brush" style="color:var(--primary);margin-right:10px;"></i>Subir Diseño Final</h1>
+            <p>Paso C: Revisa el diseño inicial y sube el diseño final aprobado</p>
+        </div>
+        <a href="registro-integrantes.html" class="btn-v btn-outline-v"><i class="fas fa-arrow-left"></i> Volver</a>
+    </div>
+
+    <!-- Pipeline - 6 etapas -->
+    <div class="pipeline-tracker">
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Contrato</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step done"><div class="pt-circle"><i class="fas fa-check"></i></div><div class="pt-label">Integrantes</div></div>
+        <div class="pt-line done"></div>
+        <div class="pt-step active"><div class="pt-circle"><i class="fas fa-paint-brush"></i></div><div class="pt-label">Diseño</div></div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending"><div class="pt-circle"><i class="fas fa-tshirt"></i></div><div class="pt-label">Planchado</div></div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending"><div class="pt-circle"><i class="fas fa-cut"></i></div><div class="pt-label">Costura</div></div>
+        <div class="pt-line"></div>
+        <div class="pt-step pending"><div class="pt-circle"><i class="fas fa-box"></i></div><div class="pt-label">Entrega</div></div>
+    </div>
+
+    <div class="row g-4">
+        <!-- COLUMNA IZQUIERDA -->
+        <div class="col-lg-8">
+
+            <!-- Info del pedido + selector -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-info-circle" style="margin-right:8px;"></i>Pedido de Trabajo</h5>
+                </div>
+                <div class="card-v-body">
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="field-lbl">Seleccionar Pedido</label>
+                            <select class="field-ctrl" id="selectPedido" onchange="seleccionarPedidoDis(this)">
+                                <option value="">— Seleccionar —</option>
+                                <option value="PED-003|ALBERTO YAPIAS|12 Conjuntos|Karina" data-diseno="https://via.placeholder.com/400x300/FFD23F/1a1a1a?text=Diseño+Inicial+PED-003">PED-003 · ALBERTO YAPIAS</option>
+                                <option value="PED-002|JOSE CARDENAS|12 Conjuntos|Karina" data-diseno="https://via.placeholder.com/400x300/2B4FFF/ffffff?text=Diseño+Inicial+PED-002">PED-002 · JOSE CARDENAS</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="field-lbl">Cliente</label>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;padding-top:8px;" id="disClienteVal">—</div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="field-lbl">Prendas</label>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;padding-top:8px;" id="disPrendasVal">—</div>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="field-lbl">Vendedor</label>
+                            <div style="font-size:.85rem;padding-top:8px;color:var(--muted);" id="disVendedorVal">—</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="field-lbl">Observaciones del Diseñador</label>
+                            <textarea class="field-ctrl" rows="2" placeholder="Notas del diseñador sobre el trabajo realizado..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diseño Inicial del Vendedor (NUEVO) -->
+            <div class="diseno-inicial-container" id="disenoInicialContainer" style="display:none;">
+                <div class="diseno-inicial-header">
+                    <div class="diseno-inicial-title">
+                        <i class="fas fa-lightbulb" style="margin-right:8px;"></i>Diseño Inicial Sugerido
+                    </div>
+                    <span class="diseno-inicial-badge">Por Vendedor</span>
+                </div>
+                <div id="disenoInicialContent">
+                    <img src="" alt="Diseño Inicial" class="diseno-inicial-preview" id="disenoInicialImg" style="display:none;">
+                    <div class="diseno-inicial-placeholder" id="disenoInicialPlaceholder">
+                        <i class="fas fa-image"></i>
+                        <span>Selecciona un pedido para ver el diseño inicial</span>
+                    </div>
+                </div>
+                <div class="diseno-inicial-info" id="disenoInicialInfo" style="display:none;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <span>Este diseño fue sugerido por el cliente y registrado por el vendedor.</span><br>
+                        <small id="disenoInicialFecha">Subido: 15/01/2025</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upload de 3 diseños (sin Logo) -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-images" style="margin-right:8px;"></i>Diseños Finales (máx. 3 fotos)</h5>
+                    <span style="font-size:.78rem;color:var(--muted);">Haz clic en cada sector o arrastra la imagen</span>
+                </div>
+                <div class="card-v-body">
+                    <div class="upload-grid">
+                        <!-- Sector 1: Camiseta (GRANDE - ocupa 2 filas) -->
+                        <div class="upload-sector camiseta-grande" id="sector-0" onclick="triggerUpload(0)" ondragover="dragOver(event,0)" ondragleave="dragLeave(0)" ondrop="dropFile(event,0)">
+                            <input type="file" id="fileInput-0" hidden accept="image/*" onchange="handleFile(event,0)">
+                            <div class="sector-badge" id="badge-0">✓ Subido</div>
+                            <button class="sector-remove" id="remove-0" onclick="event.stopPropagation();removeImage(0)"><i class="fas fa-times"></i></button>
+                            <img class="sector-preview" id="preview-0" alt="Camiseta">
+                            <i class="fas fa-tshirt sector-icon" id="icon-0"></i>
+                            <div class="sector-label" id="label-0">Camiseta</div>
+                            <div class="sector-sub" id="sub-0">Diseño frontal y posterior</div>
+                        </div>
+                        <!-- Sector 2: Short -->
+                        <div class="upload-sector" id="sector-1" onclick="triggerUpload(1)" ondragover="dragOver(event,1)" ondragleave="dragLeave(1)" ondrop="dropFile(event,1)">
+                            <input type="file" id="fileInput-1" hidden accept="image/*" onchange="handleFile(event,1)">
+                            <div class="sector-badge" id="badge-1">✓ Subido</div>
+                            <button class="sector-remove" id="remove-1" onclick="event.stopPropagation();removeImage(1)"><i class="fas fa-times"></i></button>
+                            <img class="sector-preview" id="preview-1" alt="Short">
+                            <i class="fas fa-running sector-icon" id="icon-1"></i>
+                            <div class="sector-label" id="label-1">Short</div>
+                            <div class="sector-sub" id="sub-1">Diseño del short / pantalón</div>
+                        </div>
+                        <!-- Sector 3: Banderola -->
+                        <div class="upload-sector" id="sector-2" onclick="triggerUpload(2)" ondragover="dragOver(event,2)" ondragleave="dragLeave(2)" ondrop="dropFile(event,2)">
+                            <input type="file" id="fileInput-2" hidden accept="image/*" onchange="handleFile(event,2)">
+                            <div class="sector-badge" id="badge-2">✓ Subido</div>
+                            <button class="sector-remove" id="remove-2" onclick="event.stopPropagation();removeImage(2)"><i class="fas fa-times"></i></button>
+                            <img class="sector-preview" id="preview-2" alt="Banderola">
+                            <i class="fas fa-flag sector-icon" id="icon-2"></i>
+                            <div class="sector-label" id="label-2">Banderola</div>
+                            <div class="sector-sub" id="sub-2">Si corresponde al pedido</div>
+                        </div>
+                    </div>
+
+                    <!-- Progreso de subida -->
+                    <div style="background:var(--bg);border-radius:10px;padding:14px 18px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                            <span style="font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;">Diseños subidos</span>
+                            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;color:var(--primary);" id="uploadCount">0/3</span>
+                        </div>
+                        <div style="background:var(--border);border-radius:20px;height:6px;overflow:hidden;">
+                            <div id="uploadBar" style="background:var(--primary);height:100%;border-radius:20px;transition:width .4s;width:0%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Integrantes del pedido (readonly) con ordenamiento -->
+            <div class="card-v">
+                <div class="card-v-header">
+                    <h5 class="card-v-title"><i class="fas fa-users" style="margin-right:8px;"></i>Integrantes Registrados</h5>
+                    <div class="sort-controls">
+                        <span style="font-size:.75rem;color:var(--muted);margin-right:4px;">Ordenar por talla:</span>
+                        <button class="sort-btn" id="btnSortNone" onclick="sortTable('none')"><i class="fas fa-list"></i> Original</button>
+                        <button class="sort-btn" id="btnSortAsc" onclick="sortTable('asc')"><i class="fas fa-sort-alpha-down"></i> A-Z</button>
+                        <button class="sort-btn" id="btnSortDesc" onclick="sortTable('desc')"><i class="fas fa-sort-alpha-up"></i> Z-A</button>
+                    </div>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table class="integrantes-tabla" id="tablaIntegrantes">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th style="text-align:center;" class="sortable" onclick="sortTable('toggle')">Talla <i class="fas fa-filter" style="font-size:.65rem;opacity:.5;"></i></th>
+                                <th style="text-align:center;">Número</th>
+                                <th>Observación</th>
+                                <th style="text-align:center;">Short</th>
+                                <th style="text-align:center;">Sexo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="integrantesBody">
+                            <tr><td style="color:var(--muted);">1</td><td>Juan Pérez</td><td style="text-align:center;" data-talla="M"><span class="talla-badge">M</span></td><td style="text-align:center;font-weight:700;">10</td><td>Capitán</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Varón</td></tr>
+                            <tr><td style="color:var(--muted);">2</td><td>María García</td><td style="text-align:center;" data-talla="S"><span class="talla-badge">S</span></td><td style="text-align:center;font-weight:700;">7</td><td>Arquera</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Dama</td></tr>
+                            <tr><td style="color:var(--muted);">3</td><td>Carlos López</td><td style="text-align:center;" data-talla="L"><span class="talla-badge">L</span></td><td style="text-align:center;font-weight:700;">5</td><td>—</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Varón</td></tr>
+                            <tr><td style="color:var(--muted);">4</td><td>Ana Torres</td><td style="text-align:center;" data-talla="XL"><span class="talla-badge">XL</span></td><td style="text-align:center;font-weight:700;">9</td><td>Talla grande</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Dama</td></tr>
+                            <tr><td style="color:var(--muted);">5</td><td>Pedro Ruiz</td><td style="text-align:center;" data-talla="S"><span class="talla-badge">S</span></td><td style="text-align:center;font-weight:700;">11</td><td>—</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Varón</td></tr>
+                            <tr><td style="color:var(--muted);">6</td><td>Laura Mendoza</td><td style="text-align:center;" data-talla="M"><span class="talla-badge">M</span></td><td style="text-align:center;font-weight:700;">8</td><td>—</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Dama</td></tr>
+                            <tr><td style="color:var(--muted);">7</td><td>Roberto Díaz</td><td style="text-align:center;" data-talla="XL"><span class="talla-badge">XL</span></td><td style="text-align:center;font-weight:700;">3</td><td>Portero</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Varón</td></tr>
+                            <tr><td style="color:var(--muted);">8</td><td>Carmen Vega</td><td style="text-align:center;" data-talla="L"><span class="talla-badge">L</span></td><td style="text-align:center;font-weight:700;">14</td><td>—</td><td style="text-align:center;">SÍ</td><td style="text-align:center;">Dama</td></tr>
+                            <tr><td colspan="7" style="text-align:center;padding:12px;color:var(--muted);font-size:.82rem;font-style:italic;">... y 4 integrantes más</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA DERECHA -->
+        <div class="col-lg-4">
+            <div class="card-v" style="position:sticky;top:20px;">
+                <div class="card-v-header" style="background:linear-gradient(to right,rgba(43,79,255,.06),#fff);">
+                    <h5 class="card-v-title"><i class="fas fa-check-circle" style="margin-right:8px;"></i>Confirmar Diseño</h5>
+                </div>
+                <div style="padding:20px;">
+                    <!-- Resumen tallas -->
+                    <div style="background:var(--bg);border-radius:10px;padding:14px;margin-bottom:16px;">
+                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">Resumen de Tallas</div>
+                        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+                            <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center;">
+                                <div style="font-size:.68rem;color:var(--muted);font-weight:700;">S</div>
+                                <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary);">2</div>
+                            </div>
+                            <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center;">
+                                <div style="font-size:.68rem;color:var(--muted);font-weight:700;">M</div>
+                                <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary);">2</div>
+                            </div>
+                            <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center;">
+                                <div style="font-size:.68rem;color:var(--muted);font-weight:700;">L</div>
+                                <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary);">2</div>
+                            </div>
+                            <div style="background:white;border:1px solid var(--border);border-radius:8px;padding:6px;text-align:center;">
+                                <div style="font-size:.68rem;color:var(--muted);font-weight:700;">XL</div>
+                                <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;color:var(--primary);">2</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estado de diseños -->
+                    <div style="margin-bottom:16px;">
+                        <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:10px;">Estado de Diseños</div>
+                        <div style="display:flex;flex-direction:column;gap:8px;">
+                            <div class="dis-status-row" id="status-0">
+                                <i class="fas fa-circle" style="color:var(--border);font-size:.6rem;"></i>
+                                <span style="font-size:.85rem;">Camiseta</span>
+                                <span class="dis-tag pending">Pendiente</span>
+                            </div>
+                            <div class="dis-status-row" id="status-1">
+                                <i class="fas fa-circle" style="color:var(--border);font-size:.6rem;"></i>
+                                <span style="font-size:.85rem;">Short</span>
+                                <span class="dis-tag pending">Pendiente</span>
+                            </div>
+                            <div class="dis-status-row" id="status-2">
+                                <i class="fas fa-circle" style="color:var(--border);font-size:.6rem;"></i>
+                                <span style="font-size:.85rem;">Banderola</span>
+                                <span class="dis-tag optional">Opcional</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="height:1px;background:var(--border);margin:16px 0;"></div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <button class="btn-v btn-info-v" onclick="imprimirFicha()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-print"></i> Imprimir Ficha
+                        </button>
+                        <button class="btn-v btn-success-v" onclick="confirmarDiseno()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-check-circle"></i> Confirmar Diseño
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<style>
+.dis-status-row{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border-radius:8px;}
+.dis-tag{margin-left:auto;padding:2px 8px;border-radius:12px;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.dis-tag.pending{background:rgba(100,116,139,.1);color:var(--muted);}
+.dis-tag.done{background:rgba(6,214,160,.12);color:#059669;}
+.dis-tag.optional{background:rgba(245,158,11,.12);color:#d97706;}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ===========================================
+    // LÓGICA DE NAVEGACIÓN POR ROL
+    // ===========================================
+    const rol = sessionStorage.getItem('vz_rol') || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    
+    // Actualizar avatar y nombre de usuario
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = {vendedor:'Vendedor',disenador:'Diseñador',administrador:'Administrador'};
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+
+    // Mostrar/ocultar elementos de navegación según el rol
+    function configurarNavegacionPorRol() {
+        const rolActual = rol.toLowerCase();
+        
+        // --- ADMINISTRADOR ---
+        if (rolActual === 'administrador') {
+            // Ve todo
+            document.getElementById('nav-usuarios').style.display = 'flex';
+            document.getElementById('nav-vendedor-label').style.display = 'block';
+            document.getElementById('nav-ingreso').style.display = 'flex';
+            document.getElementById('nav-integrantes').style.display = 'flex';
+            document.getElementById('nav-entrega').style.display = 'flex';
+            document.getElementById('nav-disenador-label').style.display = 'block';
+            document.getElementById('nav-diseno').style.display = 'flex';
+            document.getElementById('nav-planchado').style.display = 'flex';
+            document.getElementById('nav-costura').style.display = 'flex';
+        }
+        
+        // --- VENDEDOR ---
+        else if (rolActual === 'vendedor') {
+            document.getElementById('nav-vendedor-label').style.display = 'block';
+            document.getElementById('nav-ingreso').style.display = 'flex';
+            document.getElementById('nav-integrantes').style.display = 'flex';
+            document.getElementById('nav-entrega').style.display = 'flex';
+        }
+        
+        // --- DISEÑADOR ---
+        else if (rolActual === 'disenador') {
+            document.getElementById('nav-disenador-label').style.display = 'block';
+            document.getElementById('nav-diseno').style.display = 'flex';
+            document.getElementById('nav-planchado').style.display = 'flex';
+            document.getElementById('nav-costura').style.display = 'flex';
+        }
+    }
+    
+    // Ejecutar configuración al cargar
+    configurarNavegacionPorRol();
+
+    function cerrarSesion() { 
+        sessionStorage.clear(); 
+        window.location.href='login.html'; 
+    }
+
+    // ===========================================
+    // DATOS Y FUNCIONES DE INTEGRANTES
+    // ===========================================
+    let integrantesOriginal = [];
+    let currentSort = 'none';
+    const tallaOrder = { 'XS': 1, 'S': 2, 'M': 3, 'L': 4, 'XL': 5, 'XXL': 6 };
+
+    function seleccionarPedidoDis(sel) {
+        const val = sel.value;
+        if (!val) { 
+            document.getElementById('disClienteVal').textContent='—'; 
+            document.getElementById('disPrendasVal').textContent='—'; 
+            document.getElementById('disVendedorVal').textContent='—';
+            // Ocultar diseño inicial
+            document.getElementById('disenoInicialContainer').style.display='none';
+            return; 
+        }
+        const p = val.split('|');
+        document.getElementById('disClienteVal').textContent = p[1];
+        document.getElementById('disPrendasVal').textContent = p[2];
+        document.getElementById('disVendedorVal').textContent = p[3];
+        
+        // Mostrar diseño inicial del vendedor
+        const selectedOption = sel.options[sel.selectedIndex];
+        const disenoUrl = selectedOption.getAttribute('data-diseno');
+        if (disenoUrl) {
+            document.getElementById('disenoInicialContainer').style.display='block';
+            document.getElementById('disenoInicialImg').src = disenoUrl;
+            document.getElementById('disenoInicialImg').style.display = 'block';
+            document.getElementById('disenoInicialPlaceholder').style.display = 'none';
+            document.getElementById('disenoInicialInfo').style.display = 'flex';
+        }
+    }
+
+    // ===========================================
+    // UPLOAD DE DISEÑOS
+    // ===========================================
+    const sectorNames = ['Camiseta','Short','Banderola'];
+    const uploads = [null, null, null];
+
+    function triggerUpload(idx) { document.getElementById(`fileInput-${idx}`).click(); }
+    function dragOver(e, idx) { e.preventDefault(); document.getElementById(`sector-${idx}`).classList.add('drag-over'); }
+    function dragLeave(idx) { document.getElementById(`sector-${idx}`).classList.remove('drag-over'); }
+    function dropFile(e, idx) { e.preventDefault(); dragLeave(idx); const f = e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) processFile(f, idx); }
+    function handleFile(e, idx) { if (e.target.files[0]) processFile(e.target.files[0], idx); }
+
+    function processFile(file, idx) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            uploads[idx] = e.target.result;
+            const sector = document.getElementById(`sector-${idx}`);
+            const preview = document.getElementById(`preview-${idx}`);
+            const icon = document.getElementById(`icon-${idx}`);
+            const label = document.getElementById(`label-${idx}`);
+            const sub = document.getElementById(`sub-${idx}`);
+            const badge = document.getElementById(`badge-${idx}`);
+            const remove = document.getElementById(`remove-${idx}`);
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            icon.style.display = 'none';
+            label.style.display = 'none';
+            sub.style.display = 'none';
+            sector.classList.add('has-image');
+            sector.classList.remove('drag-over');
+            badge.classList.add('show');
+            remove.classList.add('show');
+            // Status
+            const st = document.getElementById(`status-${idx}`);
+            st.querySelector('.dis-tag').className = 'dis-tag done';
+            st.querySelector('.dis-tag').textContent = '✓ Subido';
+            st.querySelector('i').style.color = 'var(--success)';
+            updateProgress();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function removeImage(idx) {
+        uploads[idx] = null;
+        document.getElementById(`preview-${idx}`).style.display = 'none';
+        document.getElementById(`preview-${idx}`).src = '';
+        document.getElementById(`icon-${idx}`).style.display = 'block';
+        document.getElementById(`label-${idx}`).style.display = 'block';
+        document.getElementById(`sub-${idx}`).style.display = 'block';
+        document.getElementById(`sector-${idx}`).classList.remove('has-image');
+        document.getElementById(`badge-${idx}`).classList.remove('show');
+        document.getElementById(`remove-${idx}`).classList.remove('show');
+        const st = document.getElementById(`status-${idx}`);
+        st.querySelector('.dis-tag').className = idx===2 ? 'dis-tag optional' : 'dis-tag pending';
+        st.querySelector('.dis-tag').textContent = idx===2 ? 'Opcional' : 'Pendiente';
+        st.querySelector('i').style.color = 'var(--border)';
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const count = uploads.filter(u=>u!==null).length;
+        document.getElementById('uploadCount').textContent = `${count}/3`;
+        document.getElementById('uploadBar').style.width = `${count*33.33}%`;
+        if (count===3) document.getElementById('uploadBar').style.background = 'var(--success)';
+        else document.getElementById('uploadBar').style.background = 'var(--primary)';
+    }
+
+    // ===========================================
+    // ORDENAMIENTO DE TABLA POR TALLAS
+    // ===========================================
+    function sortTable(direction) {
+        const tbody = document.getElementById('integrantesBody');
+        const rows = Array.from(tbody.querySelectorAll('tr:not(:last-child)'));
+        const lastRow = tbody.querySelector('tr:last-child');
+        
+        // Actualizar botones activos
+        document.querySelectorAll('.sort-btn').forEach(btn => btn.classList.remove('active'));
+        
+        if (direction === 'toggle') {
+            // Ciclar entre: none -> asc -> desc -> none
+            if (currentSort === 'none') direction = 'asc';
+            else if (currentSort === 'asc') direction = 'desc';
+            else direction = 'none';
+        }
+        
+        currentSort = direction;
+        document.getElementById(`btnSort${direction === 'none' ? 'None' : direction === 'asc' ? 'Asc' : 'Desc'}`).classList.add('active');
+        
+        if (direction === 'none') {
+            // Restaurar orden original
+            if (integrantesOriginal.length === 0) return;
+            integrantesOriginal.forEach(row => tbody.appendChild(row));
+            tbody.appendChild(lastRow);
+            return;
+        }
+        
+        // Guardar orden original si no se ha guardado
+        if (integrantesOriginal.length === 0) {
+            integrantesOriginal = rows.map(row => row.cloneNode(true));
+        }
+        
+        // Ordenar
+        rows.sort((a, b) => {
+            const tallaA = a.querySelector('[data-talla]')?.getAttribute('data-talla') || 'M';
+            const tallaB = b.querySelector('[data-talla]')?.getAttribute('data-talla') || 'M';
+            const orderA = tallaOrder[tallaA] || 99;
+            const orderB = tallaOrder[tallaB] || 99;
+            
+            if (direction === 'asc') return orderA - orderB;
+            else return orderB - orderA;
+        });
+        
+        // Reinsertar filas ordenadas
+        rows.forEach(row => tbody.appendChild(row));
+        tbody.appendChild(lastRow);
+        
+        // Actualizar números de fila
+        rows.forEach((row, index) => {
+            const firstCell = row.querySelector('td:first-child');
+            if (firstCell) firstCell.textContent = index + 1;
+        });
+    }
+
+    // ===========================================
+    // CONFIRMAR DISEÑO - REDIRIGIR A PLANCHADO
+    // ===========================================
+    function confirmarDiseno() {
+        const subidos = uploads.filter(u=>u!==null).length;
+        if (subidos < 1) { 
+            alert('Sube al menos 1 diseño para continuar.'); 
+            return; 
+        }
+        
+        // Guardar estado del diseño (simulado)
+        sessionStorage.setItem('vz_diseno_confirmado', 'true');
+        sessionStorage.setItem('vz_diseno_count', subidos.toString());
+        
+        alert(`✓ Diseño confirmado con ${subidos} imagen(es).\n\nEl pedido pasa al estado DISEÑO COMPLETO.\n\nRedirigiendo a Planchado...`);
+        
+        // REDIRIGIR A PLANCHADO.HTML
+        window.location.href = 'planchado.html';
+    }
+
+    function imprimirFicha() { 
+        window.print(); 
+    }
+</script>
+</body>
+</html>
