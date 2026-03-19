@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Lista de Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2B4FFF; --accent: #FFD23F;
+            --success: #06d6a0; --warning: #f59e0b; --danger: #ef476f; --info: #38bdf8;
+            --bg: #f0f4ff; --surface: #ffffff; --border: #e2e8f0;
+            --text: #1e293b; --muted: #64748b;
+            --sidebar-bg: #0f1729; --sidebar-w: 240px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+        .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .brand-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: 2px; color: white; }
+        .brand-logo span { color: var(--accent); }
+        .brand-sub { font-size: 0.68rem; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; margin: 1px 10px; border-radius: 8px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; }
+        .nav-item .badge-nav { background: var(--accent); color: #1a1a1a; border-radius: 20px; padding: 1px 8px; font-size: 0.7rem; font-weight: 700; margin-left: auto; }
+        .sidebar-user { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: white; font-size: 1rem; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 600; color: white; }
+        .user-info .user-role { font-size: 0.72rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; }
+        .btn-logout { margin-left: auto; color: rgba(255,255,255,0.3); background: none; border: none; cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+        .btn-logout:hover { color: var(--danger); }
+
+        .main-content { margin-left: var(--sidebar-w); flex: 1; padding: 28px; }
+
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+        .topbar h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px; }
+        .topbar p { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+        .topbar-actions { display: flex; gap: 10px; }
+
+        .btn-action {
+            padding: 9px 16px; border-radius: 10px; font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.88rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+            cursor: pointer; border: none; transition: all 0.2s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .btn-primary-a { background: var(--primary); color: white; }
+        .btn-primary-a:hover { background: #1a35cc; color: white; }
+        .btn-outline-a { background: white; color: var(--primary); border: 1.5px solid var(--primary); }
+        .btn-outline-a:hover { background: var(--primary); color: white; }
+
+        /* Barra de stats */
+        .stats-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 20px; }
+        .stat-chip {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+            padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .stat-chip:hover { border-color: var(--primary); }
+        .stat-chip.active { border-color: var(--primary); background: rgba(43,79,255,0.05); }
+        .stat-chip-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+        .stat-chip-val { font-family: 'Barlow Condensed', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
+        .stat-chip-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 1px; }
+
+        /* Toolbar */
+        .toolbar { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 14px; flex: 1; min-width: 200px; }
+        .search-box input { background: none; border: none; outline: none; font-family: 'Barlow', sans-serif; font-size: 0.88rem; color: var(--text); width: 100%; }
+        .search-box i { color: var(--muted); }
+        .toolbar-select { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; font-family: 'Barlow', sans-serif; font-size: 0.85rem; color: var(--text); background: white; outline: none; cursor: pointer; }
+
+        /* Tabla */
+        .table-wrapper { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+        .table-vizengo { width: 100%; border-collapse: collapse; }
+        .table-vizengo thead th {
+            background: var(--sidebar-bg); color: rgba(255,255,255,0.6);
+            padding: 12px 16px; font-family: 'Barlow Condensed', sans-serif;
+            font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;
+            white-space: nowrap; position: sticky; top: 0;
+        }
+        .table-vizengo tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        .table-vizengo tbody tr:last-child { border-bottom: none; }
+        .table-vizengo tbody tr:hover { background: #f8faff; }
+        .table-vizengo tbody td { padding: 13px 16px; vertical-align: middle; font-size: 0.87rem; }
+
+        .order-num { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--primary); font-size: 0.9rem; }
+        .client-name { font-weight: 700; color: var(--text); }
+        .client-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+        /* Badges */
+        .bdg {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 9px; border-radius: 20px;
+            font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+        }
+        .bdg .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .bdg-ok  { background: rgba(6,214,160,0.12); color: #059669; }
+        .bdg-ok .dot { background: #059669; }
+        .bdg-inc { background: rgba(245,158,11,0.12); color: #d97706; }
+        .bdg-inc .dot { background: #d97706; }
+        .bdg-pend { background: rgba(100,116,139,0.1); color: #64748b; }
+        .bdg-pend .dot { background: #94a3b8; }
+        .bdg-urg { background: rgba(239,71,111,0.12); color: #dc2626; }
+        .bdg-urg .dot { background: #dc2626; animation: blink 1s infinite; }
+        .bdg-done { background: rgba(139,92,246,0.12); color: #7c3aed; }
+        .bdg-done .dot { background: #7c3aed; }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+        .delivery-soon { color: var(--danger); font-weight: 700; }
+        .delivery-ok { color: var(--muted); }
+
+        .icon-btn { background: none; border: 1.5px solid var(--border); border-radius: 6px; padding: 5px 9px; cursor: pointer; color: var(--primary); font-size: 0.8rem; transition: all 0.2s; }
+        .icon-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+        .icon-btn + .icon-btn { margin-left: 4px; }
+
+        /* Paginación */
+        .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 1px solid var(--border); font-size: 0.82rem; color: var(--muted); }
+        .page-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; font-size: 0.82rem; color: var(--text); transition: all 0.2s; margin: 0 2px; }
+        .page-btn.active, .page-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="index.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item active" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+
+        <div class="sidebar-section">Sistema</div>
+        <a class="nav-item" href="lista-disenos.html"><i class="fas fa-images"></i> Diseños</a>
+        <a class="nav-item" href="terminado.html"><i class="fas fa-check-double"></i> Terminados</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-list-ul" style="color:var(--primary);margin-right:10px;"></i>Lista de Pedidos</h1>
+            <p>Todos los pedidos registrados con estado de seguimiento</p>
+        </div>
+        <div class="topbar-actions">
+            <a href="seguimiento.html" class="btn-action btn-outline-a"><i class="fas fa-route"></i> Seguimiento</a>
+            <a href="ingreso-pedido.html" class="btn-action btn-primary-a" id="btn-nuevo"><i class="fas fa-plus"></i> Nuevo Pedido</a>
+        </div>
+    </div>
+
+    <!-- Stats chips -->
+    <div class="stats-row">
+        <div class="stat-chip active" onclick="filtrarEstado('todos',this)">
+            <div class="stat-chip-icon" style="background:rgba(43,79,255,0.1);color:var(--primary);"><i class="fas fa-inbox"></i></div>
+            <div><div class="stat-chip-val">24</div><div class="stat-chip-label">Total</div></div>
+        </div>
+        <div class="stat-chip" onclick="filtrarEstado('incompleto',this)">
+            <div class="stat-chip-icon" style="background:rgba(245,158,11,0.1);color:var(--warning);"><i class="fas fa-file-contract"></i></div>
+            <div><div class="stat-chip-val">2</div><div class="stat-chip-label">Contrato Inc.</div></div>
+        </div>
+        <div class="stat-chip" onclick="filtrarEstado('diseno',this)">
+            <div class="stat-chip-icon" style="background:rgba(43,79,255,0.1);color:var(--primary);"><i class="fas fa-paint-brush"></i></div>
+            <div><div class="stat-chip-val">4</div><div class="stat-chip-label">Sin Diseño</div></div>
+        </div>
+        <div class="stat-chip" onclick="filtrarEstado('planchado',this)">
+            <div class="stat-chip-icon" style="background:rgba(56,189,248,0.1);color:var(--info);"><i class="fas fa-tshirt"></i></div>
+            <div><div class="stat-chip-val">3</div><div class="stat-chip-label">Sin Planchar</div></div>
+        </div>
+        <div class="stat-chip" onclick="filtrarEstado('entrega',this)">
+            <div class="stat-chip-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6;"><i class="fas fa-box"></i></div>
+            <div><div class="stat-chip-val">2</div><div class="stat-chip-label">Listo Entrega</div></div>
+        </div>
+        <div class="stat-chip" onclick="filtrarEstado('urgente',this)">
+            <div class="stat-chip-icon" style="background:rgba(239,71,111,0.1);color:var(--danger);"><i class="fas fa-exclamation-triangle"></i></div>
+            <div><div class="stat-chip-val">2</div><div class="stat-chip-label">Urgentes</div></div>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar por cliente, número o vendedor..." oninput="buscarTabla(this.value)">
+        </div>
+        <select class="toolbar-select" onchange="filtrarVendedor(this.value)">
+            <option value="">Todos los vendedores</option>
+            <option>Luis</option>
+            <option>Karina</option>
+            <option>Erick</option>
+            <option>Vizengo</option>
+        </select>
+        <select class="toolbar-select">
+            <option value="">Todas las fechas</option>
+            <option>Esta semana</option>
+            <option>Este mes</option>
+        </select>
+        <button class="btn-action btn-outline-a" style="padding:8px 14px;" onclick="exportar()">
+            <i class="fas fa-file-excel"></i> Exportar
+        </button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="table-wrapper">
+        <table class="table-vizengo" id="tablaPedidos">
+            <thead>
+                <tr>
+                    <th>#Pedido</th>
+                    <th>Cliente</th>
+                    <th>Cantidad</th>
+                    <th>Entrega</th>
+                    <th>Vendedor</th>
+                    <th>Contrato</th>
+                    <th>Diseño</th>
+                    <th>Planchado</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaBody">
+
+                <tr data-estado="completado" data-urgente="true" data-vendedor="luis">
+                    <td><span class="order-num">#PED-001</span></td>
+                    <td><div class="client-name">LUISA MARMOLEJO</div><div class="client-meta">30 Camisetas · Tienda Vizengo</div></td>
+                    <td>30</td>
+                    <td class="delivery-soon"><i class="fas fa-circle fa-xs" style="color:var(--danger);margin-right:4px;"></i>HOY 10AM</td>
+                    <td>Luis</td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-urg"><span class="dot"></span>Entregar</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='seguimiento.html'" title="Seguimiento"><i class="fas fa-route"></i></button><button class="icon-btn" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+                <tr data-estado="planchado" data-urgente="true" data-vendedor="karina">
+                    <td><span class="order-num">#PED-002</span></td>
+                    <td><div class="client-name">JOSE CARDENAS</div><div class="client-meta">12 Conjuntos · Envío</div></td>
+                    <td>12</td>
+                    <td class="delivery-soon"><i class="fas fa-circle fa-xs" style="color:var(--danger);margin-right:4px;"></i>HOY 11AM</td>
+                    <td>Karina</td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-urg"><span class="dot"></span>Urgente</span></td>
+                    <td><span class="bdg bdg-urg"><span class="dot"></span>Urgente</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='planchado.html'" title="Planchado"><i class="fas fa-tshirt"></i></button><button class="icon-btn" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+                <tr data-estado="diseno" data-urgente="false" data-vendedor="karina">
+                    <td><span class="order-num">#PED-003</span></td>
+                    <td><div class="client-name">ALBERTO YAPIAS</div><div class="client-meta">12 Conjuntos · Tienda 2</div></td>
+                    <td>12</td>
+                    <td class="delivery-ok">Jue 3:00 PM</td>
+                    <td>Karina</td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-inc"><span class="dot"></span>Pendiente</span></td>
+                    <td><span class="bdg bdg-pend"><span class="dot"></span>Pendiente</span></td>
+                    <td><span class="bdg bdg-inc"><span class="dot"></span>En proceso</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='diseno.html'" title="Diseño"><i class="fas fa-paint-brush"></i></button><button class="icon-btn" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+                <tr data-estado="incompleto" data-urgente="false" data-vendedor="vizengo">
+                    <td><span class="order-num">#PED-004</span></td>
+                    <td><div class="client-name">TERESA SALAS</div><div class="client-meta">12 Conjuntos · Tienda 3</div></td>
+                    <td>12</td>
+                    <td class="delivery-ok">Vie 3:00 PM</td>
+                    <td>Vizengo</td>
+                    <td><span class="bdg bdg-inc"><span class="dot"></span>Incompleto</span></td>
+                    <td><span class="bdg bdg-pend"><span class="dot"></span>Pendiente</span></td>
+                    <td><span class="bdg bdg-pend"><span class="dot"></span>Pendiente</span></td>
+                    <td><span class="bdg bdg-inc"><span class="dot"></span>Incompleto</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='registro-integrantes.html'" title="Integrantes"><i class="fas fa-users"></i></button><button class="icon-btn" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+                <tr data-estado="entrega" data-urgente="false" data-vendedor="erick">
+                    <td><span class="order-num">#PED-005</span></td>
+                    <td><div class="client-name">JOSE LUIS</div><div class="client-meta">12 Conjuntos · Tienda Vizengo</div></td>
+                    <td>12</td>
+                    <td class="delivery-ok">Mar 3:00 PM</td>
+                    <td>Erick</td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-done"><span class="dot"></span>Listo Entrega</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='entrega.html'" title="Entrega"><i class="fas fa-box"></i></button><button class="icon-btn" onclick="window.location.href='seguimiento.html'" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+                <tr data-estado="entrega" data-urgente="false" data-vendedor="karina">
+                    <td><span class="order-num">#PED-006</span></td>
+                    <td><div class="client-name">ALBERTO YLAS</div><div class="client-meta">12 Conjuntos · Envío</div></td>
+                    <td>12</td>
+                    <td class="delivery-ok">Mié 9:00 AM</td>
+                    <td>Karina</td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-ok"><span class="dot"></span>Completo</span></td>
+                    <td><span class="bdg bdg-done"><span class="dot"></span>Listo Entrega</span></td>
+                    <td><button class="icon-btn" onclick="window.location.href='entrega.html'" title="Entrega"><i class="fas fa-box"></i></button><button class="icon-btn" onclick="window.location.href='seguimiento.html'" title="Ver"><i class="fas fa-eye"></i></button></td>
+                </tr>
+
+            </tbody>
+        </table>
+
+        <!-- Paginación -->
+        <div class="pagination-bar">
+            <div>Mostrando 6 de 24 pedidos</div>
+            <div>
+                <button class="page-btn">‹</button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn">3</button>
+                <button class="page-btn">4</button>
+                <button class="page-btn">›</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const rol    = sessionStorage.getItem('vz_rol')    || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = { vendedor:'Vendedor', disenador:'Diseñador', administrador:'Administrador' };
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+
+    // Mostrar Usuarios solo para administrador
+    if (rol === 'administrador') {
+        document.getElementById('nav-usuarios').style.display = 'flex';
+    }
+    // Mostrar opciones de Vendedor
+    if (rol === 'vendedor' || rol === 'administrador') {
+        document.getElementById('nav-vendedor-label').style.display = 'block';
+        document.getElementById('nav-ingreso').style.display = 'flex';
+        document.getElementById('nav-integrantes').style.display = 'flex';
+        document.getElementById('nav-entrega').style.display = 'flex';
+    }
+    // Mostrar opciones de Diseñador
+    if (rol === 'disenador' || rol === 'administrador') {
+        document.getElementById('nav-disenador-label').style.display = 'block';
+        document.getElementById('nav-diseno').style.display = 'flex';
+        document.getElementById('nav-planchado').style.display = 'flex';
+        document.getElementById('nav-costura').style.display = 'flex';
+    }
+    if (rol === 'disenador') {
+        document.getElementById('btn-nuevo').style.display = 'none';
+    }
+
+    function cerrarSesion() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+    let filtroEstado = 'todos';
+    let filtroVendedor = '';
+
+    function filtrarEstado(estado, el) {
+        document.querySelectorAll('.stat-chip').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        filtroEstado = estado;
+        aplicarFiltros();
+    }
+
+    function filtrarVendedor(val) { filtroVendedor = val.toLowerCase(); aplicarFiltros(); }
+    function buscarTabla(val) { aplicarFiltros(val.toLowerCase()); }
+
+    function aplicarFiltros(busq = '') {
+        document.querySelectorAll('#tablaBody tr').forEach(row => {
+            const estado   = row.dataset.estado;
+            const urgente  = row.dataset.urgente === 'true';
+            const vendedor = (row.dataset.vendedor || '').toLowerCase();
+            const txt      = row.textContent.toLowerCase();
+            let ok = true;
+            if (filtroEstado !== 'todos') {
+                if (filtroEstado === 'urgente') ok = urgente;
+                else if (filtroEstado === 'entrega') ok = estado === 'entrega' || estado === 'completado';
+                else ok = estado === filtroEstado || estado.includes(filtroEstado);
+            }
+            if (filtroVendedor && !vendedor.includes(filtroVendedor)) ok = false;
+            if (busq && !txt.includes(busq)) ok = false;
+            row.style.display = ok ? '' : 'none';
+        });
+    }
+
+    function exportar() { alert('Función de exportación disponible en versión con backend.'); }
+</script>
+</body>
+</html>

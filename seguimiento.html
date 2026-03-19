@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIZENGO - Seguimiento de Pedidos</title>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2B4FFF; --primary-dark: #1a35cc; --accent: #FFD23F;
+            --success: #06d6a0; --warning: #f59e0b; --danger: #ef476f; --info: #38bdf8;
+            --bg: #f0f4ff; --surface: #ffffff; --border: #e2e8f0;
+            --text: #1e293b; --muted: #64748b;
+            --sidebar-bg: #0f1729; --sidebar-w: 240px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Barlow', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+
+        /* Sidebar (compartido) */
+        .sidebar { width: var(--sidebar-w); background: var(--sidebar-bg); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; z-index: 100; }
+        .sidebar-brand { padding: 24px 20px 20px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .brand-logo { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: 2px; color: white; }
+        .brand-logo span { color: var(--accent); }
+        .brand-sub { font-size: 0.68rem; color: rgba(255,255,255,0.3); letter-spacing: 2px; text-transform: uppercase; margin-top: 2px; }
+        .sidebar-section { padding: 12px 20px 4px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.25); }
+        .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; margin: 1px 10px; border-radius: 8px; color: rgba(255,255,255,0.55); text-decoration: none; font-size: 0.88rem; font-weight: 500; transition: all 0.2s; }
+        .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.9); }
+        .nav-item.active { background: var(--primary); color: white; }
+        .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; }
+        .nav-item .badge-nav { background: var(--accent); color: #1a1a1a; border-radius: 20px; padding: 1px 8px; font-size: 0.7rem; font-weight: 700; margin-left: auto; }
+        .sidebar-user { margin-top: auto; padding: 16px 20px; border-top: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; color: white; font-size: 1rem; }
+        .user-info .user-name { font-size: 0.9rem; font-weight: 600; color: white; }
+        .user-info .user-role { font-size: 0.72rem; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1px; }
+        .btn-logout { margin-left: auto; color: rgba(255,255,255,0.3); background: none; border: none; cursor: pointer; font-size: 1rem; transition: color 0.2s; }
+        .btn-logout:hover { color: var(--danger); }
+
+        .main-content { margin-left: var(--sidebar-w); flex: 1; padding: 28px; }
+
+        .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+        .topbar h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 1.8rem; font-weight: 800; letter-spacing: 0.5px; }
+        .topbar p { font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
+
+        /* Filtros */
+        .filters-bar {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; padding: 16px 20px;
+            display: flex; gap: 12px; align-items: center; margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            background: none; border: 1.5px solid var(--border);
+            border-radius: 8px; padding: 7px 14px;
+            font-family: 'Barlow', sans-serif; font-size: 0.82rem; font-weight: 600;
+            color: var(--muted); cursor: pointer; transition: all 0.2s;
+        }
+        .filter-btn:hover, .filter-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .filter-search {
+            margin-left: auto; display: flex; align-items: center; gap: 8px;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+            padding: 7px 14px; min-width: 220px;
+        }
+        .filter-search input { background: none; border: none; outline: none; font-family: 'Barlow', sans-serif; font-size: 0.85rem; color: var(--text); width: 100%; }
+        .filter-search i { color: var(--muted); }
+
+        /* Tarjeta de seguimiento */
+        .tracking-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; margin-bottom: 16px; overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .tracking-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.07); }
+
+        .tc-header {
+            display: grid; grid-template-columns: 1fr auto;
+            padding: 16px 20px; gap: 12px; align-items: center;
+            cursor: pointer; border-bottom: 1px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .tc-header.open { border-bottom-color: var(--border); }
+        .tc-order-name { font-family: 'Barlow Condensed', sans-serif; font-size: 1.15rem; font-weight: 800; text-transform: uppercase; }
+        .tc-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; }
+        .tc-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+        /* Pipeline steps - 6 etapas */
+        .tc-pipeline {
+            padding: 20px; display: none;
+        }
+        .tc-pipeline.open { display: block; animation: slideDown 0.25s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .pipeline-steps {
+            display: grid; grid-template-columns: repeat(6, 1fr);
+            gap: 0; position: relative;
+        }
+        .pipeline-steps::before {
+            content: ''; position: absolute;
+            top: 28px; left: 5%; right: 5%; height: 3px;
+            background: var(--border); z-index: 0;
+        }
+        .step {
+            display: flex; flex-direction: column; align-items: center;
+            text-align: center; position: relative; z-index: 1;
+        }
+        .step-circle {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; border: 3px solid var(--border);
+            background: var(--surface); transition: all 0.3s; margin-bottom: 10px;
+        }
+        .step.done .step-circle { background: var(--success); border-color: var(--success); color: white; }
+        .step.active .step-circle { background: var(--primary); border-color: var(--primary); color: white; box-shadow: 0 0 0 6px rgba(43,79,255,0.12); }
+        .step.warn .step-circle { background: var(--warning); border-color: var(--warning); color: white; }
+        .step.pending .step-circle { background: var(--bg); color: var(--muted); }
+        .step-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .step.done .step-label { color: var(--success); }
+        .step.active .step-label { color: var(--primary); }
+        .step.warn .step-label { color: var(--warning); }
+        .step.pending .step-label { color: var(--muted); }
+        .step-detail { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+        .step-date { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+
+        /* Acciones dentro de la card */
+        .tc-actions {
+            display: flex; gap: 8px; padding: 14px 20px;
+            background: #fafbff; border-top: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            padding: 7px 14px; border-radius: 8px;
+            font-size: 0.8rem; font-weight: 600; cursor: pointer;
+            border: 1.5px solid; transition: all 0.2s; text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .action-btn.primary { border-color: var(--primary); color: var(--primary); background: rgba(43,79,255,0.05); }
+        .action-btn.primary:hover { background: var(--primary); color: white; }
+        .action-btn.success { border-color: var(--success); color: #059669; background: rgba(6,214,160,0.05); }
+        .action-btn.success:hover { background: var(--success); color: white; }
+        .action-btn.warn { border-color: var(--warning); color: #d97706; background: rgba(245,158,11,0.05); }
+        .action-btn.warn:hover { background: var(--warning); color: white; }
+        .action-btn.danger { border-color: var(--danger); color: var(--danger); background: rgba(239,71,111,0.05); }
+        .action-btn.danger:hover { background: var(--danger); color: white; }
+
+        /* Badges */
+        .badge-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 4px 10px; border-radius: 20px;
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+        .badge-pill .dot { width: 6px; height: 6px; border-radius: 50%; }
+        .bp-success { background: rgba(6,214,160,0.12); color: #059669; }
+        .bp-success .dot { background: #059669; }
+        .bp-warn { background: rgba(245,158,11,0.12); color: #d97706; }
+        .bp-warn .dot { background: #d97706; }
+        .bp-pending { background: rgba(100,116,139,0.1); color: #64748b; }
+        .bp-pending .dot { background: #94a3b8; }
+        .bp-danger { background: rgba(239,71,111,0.12); color: #dc2626; }
+        .bp-danger .dot { background: #dc2626; animation: blink 1s infinite; }
+        @keyframes blink { 0%,100%{opacity:1}50%{opacity:0.3} }
+        .bp-purple { background: rgba(168,85,247,0.12); color: #7c3aed; }
+        .bp-purple .dot { background: #7c3aed; }
+
+        .modal-entrega {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 9999; align-items: center; justify-content: center;
+        }
+        .modal-entrega.show { display: flex; }
+        .modal-box {
+            background: white; border-radius: 16px; padding: 28px;
+            max-width: 420px; width: 90%; animation: fadeUp 0.2s ease;
+        }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+        .modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 1.3rem; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; }
+        .modal-field { margin-bottom: 14px; }
+        .modal-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 6px; display: block; }
+        .modal-input { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; font-family: 'Barlow', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+        .modal-input:focus { border-color: var(--primary); }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-confirm { flex: 1; background: var(--success); color: white; border: none; border-radius: 8px; padding: 11px; font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: all 0.2s; }
+        .btn-confirm:hover { background: #059669; }
+        .btn-cancel { flex: 1; background: none; color: var(--muted); border: 1.5px solid var(--border); border-radius: 8px; padding: 11px; font-family: 'Barlow Condensed', sans-serif; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+
+        /* Urgente banner */
+        .urgente-banner {
+            background: rgba(239,71,111,0.08); border: 1px solid rgba(239,71,111,0.2);
+            border-left: 4px solid var(--danger); border-radius: 8px;
+            padding: 10px 14px; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 10px;
+            font-size: 0.82rem; color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <div class="brand-logo">VIZEN<span>GO</span></div>
+        <div class="brand-sub">Gestión de Pedidos</div>
+    </div>
+    <div style="margin-top:12px;">
+        <div class="sidebar-section">Principal</div>
+        <a class="nav-item" href="index.html"><i class="fas fa-chart-line"></i> Dashboard</a>
+        <a class="nav-item" href="lista-pedidos.html"><i class="fas fa-list-ul"></i> Lista de Pedidos <span class="badge-nav">12</span></a>
+        <a class="nav-item active" href="seguimiento.html"><i class="fas fa-route"></i> Seguimiento</a>
+        
+        <div class="sidebar-section">Administración</div>
+        <a class="nav-item" id="nav-usuarios" href="usuarios.html" style="display:none;"><i class="fas fa-users-cog"></i> Usuarios</a>
+
+        <div class="sidebar-section" id="nav-vendedor-label" style="display:none;">Vendedor</div>
+        <a class="nav-item" id="nav-ingreso" href="ingreso-pedido.html" style="display:none;"><i class="fas fa-plus-circle"></i> Nuevo Pedido</a>
+        <a class="nav-item" id="nav-integrantes" href="registro-integrantes.html" style="display:none;"><i class="fas fa-users"></i> Integrantes</a>
+        <a class="nav-item" id="nav-entrega" href="entrega.html" style="display:none;"><i class="fas fa-box"></i> Entrega</a>
+
+        <div class="sidebar-section" id="nav-disenador-label" style="display:none;">Diseñador</div>
+        <a class="nav-item" id="nav-diseno" href="diseno.html" style="display:none;"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+        <a class="nav-item" id="nav-planchado" href="planchado.html" style="display:none;"><i class="fas fa-tshirt"></i> Planchado</a>
+        <a class="nav-item" id="nav-costura" href="costura.html" style="display:none;"><i class="fas fa-cut"></i> Costura</a>
+        
+        <div class="sidebar-section">Sistema</div>
+        <a class="nav-item" href="lista-disenos.html"><i class="fas fa-images"></i> Diseños</a>
+        <a class="nav-item" href="terminado.html"><i class="fas fa-check-double"></i> Terminados</a>
+    </div>
+    <div class="sidebar-user">
+        <div class="user-avatar" id="userAvatar">A</div>
+        <div class="user-info"><div class="user-name" id="userName">Admin</div><div class="user-role" id="userRole">Administrador</div></div>
+        <button class="btn-logout" onclick="cerrarSesion()"><i class="fas fa-sign-out-alt"></i></button>
+    </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main-content">
+    <div class="topbar">
+        <div>
+            <h1><i class="fas fa-route" style="color:var(--primary);margin-right:10px;"></i>Seguimiento de Pedidos</h1>
+            <p>Estado en tiempo real de cada etapa del proceso</p>
+        </div>
+        <a href="ingreso-pedido.html" class="action-btn primary" id="btn-nuevo" style="padding:10px 18px;font-size:0.9rem;">
+            <i class="fas fa-plus"></i> Nuevo Pedido
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-bar">
+        <button class="filter-btn active" onclick="filtrar(this,'todos')">Todos</button>
+        <button class="filter-btn" onclick="filtrar(this,'contrato')"><i class="fas fa-file-contract" style="margin-right:4px;"></i>Contrato</button>
+        <button class="filter-btn" onclick="filtrar(this,'diseno')"><i class="fas fa-paint-brush" style="margin-right:4px;"></i>Diseño</button>
+        <button class="filter-btn" onclick="filtrar(this,'planchado')"><i class="fas fa-tshirt" style="margin-right:4px;"></i>Planchado</button>
+        <button class="filter-btn" onclick="filtrar(this,'costura')"><i class="fas fa-cut" style="margin-right:4px;"></i>Costura</button>
+        <button class="filter-btn" onclick="filtrar(this,'entrega')"><i class="fas fa-box" style="margin-right:4px;"></i>Entrega</button>
+        <button class="filter-btn" onclick="filtrar(this,'completado')"><i class="fas fa-check-circle" style="margin-right:4px;"></i>Completados</button>
+        <button class="filter-btn" style="border-color:var(--danger);color:var(--danger);" onclick="filtrar(this,'urgente')"><i class="fas fa-exclamation-triangle" style="margin-right:4px;"></i>Urgentes</button>
+        <div class="filter-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar cliente o pedido..." oninput="buscar(this.value)">
+        </div>
+    </div>
+
+    <!-- Tarjetas de seguimiento -->
+    <div id="trackingList">
+
+        <!-- PED-001 -->
+        <div class="tracking-card" data-etapa="entrega" data-urgente="true" data-nombre="luisa marmolejo">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">LUISA MARMOLEJO <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-001</span></div>
+                    <div class="tc-meta">30 Camisetas · Vendedor: Luis · Tienda Vizengo · <strong style="color:var(--danger);">HOY 10:00 AM</strong></div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-danger"><span class="dot"></span>URGENTE</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Contrato</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Diseño</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Planchado</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Costura</span>
+                    <span class="badge-pill bp-warn"><span class="dot"></span>Entrega</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;transition:transform 0.2s;" class="chevron"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div style="background:rgba(239,71,111,0.06);border:1px solid rgba(239,71,111,0.15);border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:0.82rem;color:#991b1b;display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>Entrega hoy a las 10:00 AM.</strong> Pendiente de registrar entrega/envío para marcar como COMPLETADO.
+                </div>
+                <div class="pipeline-steps">
+                    <div class="step done">
+                        <div class="step-circle"><i class="fas fa-file-contract"></i></div>
+                        <div class="step-label">Contrato</div>
+                        <div class="step-detail">Completo</div>
+                        <div class="step-date">02/07/2025</div>
+                    </div>
+                    <div class="step done">
+                        <div class="step-circle"><i class="fas fa-users"></i></div>
+                        <div class="step-label">Integrantes</div>
+                        <div class="step-detail">30 registrados</div>
+                        <div class="step-date">02/07/2025</div>
+                    </div>
+                    <div class="step done">
+                        <div class="step-circle"><i class="fas fa-paint-brush"></i></div>
+                        <div class="step-label">Diseño</div>
+                        <div class="step-detail">Camiseta + Logo</div>
+                        <div class="step-date">04/07/2025</div>
+                    </div>
+                    <div class="step done">
+                        <div class="step-circle"><i class="fas fa-tshirt"></i></div>
+                        <div class="step-label">Planchado</div>
+                        <div class="step-detail">30 polos · Karem</div>
+                        <div class="step-date">06/07/2025</div>
+                    </div>
+                    <div class="step done">
+                        <div class="step-circle"><i class="fas fa-cut"></i></div>
+                        <div class="step-label">Costura</div>
+                        <div class="step-detail">30 polos · Rosa</div>
+                        <div class="step-date">07/07/2025</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-circle"><i class="fas fa-box"></i></div>
+                        <div class="step-label">Entrega</div>
+                        <div class="step-detail">PENDIENTE</div>
+                        <div class="step-date">—</div>
+                    </div>
+                </div>
+            </div>
+            <div class="tc-actions" id="actions-ped001">
+                <button class="action-btn success" onclick="abrirModalEntrega('PED-001','LUISA MARMOLEJO')"><i class="fas fa-box-open"></i> Registrar Entrega</button>
+                <a href="ingreso-pedido.html" class="action-btn primary"><i class="fas fa-eye"></i> Ver Contrato</a>
+                <a href="registro-integrantes.html" class="action-btn primary"><i class="fas fa-users"></i> Ver Integrantes</a>
+                <a href="diseno.html" class="action-btn primary"><i class="fas fa-image"></i> Ver Diseño</a>
+            </div>
+        </div>
+
+        <!-- PED-002 -->
+        <div class="tracking-card" data-etapa="costura" data-urgente="true" data-nombre="jose cardenas">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">JOSE CARDENAS <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-002</span></div>
+                    <div class="tc-meta">12 Conjuntos · Vendedor: Karina · Envío · <strong style="color:var(--danger);">HOY 11:00 AM</strong></div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-danger"><span class="dot"></span>URGENTE</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Contrato</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Diseño</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Planchado</span>
+                    <span class="badge-pill bp-warn"><span class="dot"></span>Costura</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Entrega</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div style="background:rgba(239,71,111,0.06);border:1px solid rgba(239,71,111,0.15);border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:0.82rem;color:#991b1b;display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-exclamation-triangle"></i> <strong>¡URGENTE!</strong> La costura está pendiente y la entrega es hoy a las 11:00 AM.
+                </div>
+                <div class="pipeline-steps">
+                    <div class="step done"><div class="step-circle"><i class="fas fa-file-contract"></i></div><div class="step-label">Contrato</div><div class="step-detail">Completo</div><div class="step-date">01/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-users"></i></div><div class="step-label">Integrantes</div><div class="step-detail">12 registrados</div><div class="step-date">01/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-paint-brush"></i></div><div class="step-label">Diseño</div><div class="step-detail">Completo</div><div class="step-date">03/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-tshirt"></i></div><div class="step-label">Planchado</div><div class="step-detail">12 polos</div><div class="step-date">05/07/2025</div></div>
+                    <div class="step warn"><div class="step-circle"><i class="fas fa-cut"></i></div><div class="step-label">Costura</div><div class="step-detail">PENDIENTE</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-box"></i></div><div class="step-label">Entrega</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                </div>
+            </div>
+            <div class="tc-actions">
+                <a href="costura.html" class="action-btn warn"><i class="fas fa-cut"></i> Registrar Costura</a>
+                <a href="ingreso-pedido.html" class="action-btn primary"><i class="fas fa-eye"></i> Ver Contrato</a>
+                <a href="diseno.html" class="action-btn primary"><i class="fas fa-image"></i> Ver Diseño</a>
+            </div>
+        </div>
+
+        <!-- PED-003 -->
+        <div class="tracking-card" data-etapa="planchado" data-urgente="false" data-nombre="alberto yapias">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">ALBERTO YAPIAS <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-003</span></div>
+                    <div class="tc-meta">12 Conjuntos · Vendedor: Karina · Tienda 2 · Entrega: Jue 3:00 PM</div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-success"><span class="dot"></span>Contrato</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Diseño</span>
+                    <span class="badge-pill bp-warn"><span class="dot"></span>Planchado</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Costura</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Entrega</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div class="pipeline-steps">
+                    <div class="step done"><div class="step-circle"><i class="fas fa-file-contract"></i></div><div class="step-label">Contrato</div><div class="step-detail">Completo</div><div class="step-date">05/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-users"></i></div><div class="step-label">Integrantes</div><div class="step-detail">12 registrados</div><div class="step-date">05/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-paint-brush"></i></div><div class="step-label">Diseño</div><div class="step-detail">Completo</div><div class="step-date">06/07/2025</div></div>
+                    <div class="step active"><div class="step-circle"><i class="fas fa-tshirt"></i></div><div class="step-label">Planchado</div><div class="step-detail">EN PROCESO</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-cut"></i></div><div class="step-label">Costura</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-box"></i></div><div class="step-label">Entrega</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                </div>
+            </div>
+            <div class="tc-actions">
+                <a href="planchado.html" class="action-btn warn"><i class="fas fa-tshirt"></i> Registrar Planchado</a>
+                <a href="diseno.html" class="action-btn primary"><i class="fas fa-image"></i> Ver Diseño</a>
+                <a href="registro-integrantes.html" class="action-btn primary"><i class="fas fa-users"></i> Ver Integrantes</a>
+            </div>
+        </div>
+
+        <!-- PED-004 -->
+        <div class="tracking-card" data-etapa="diseno" data-urgente="false" data-nombre="teresa salas">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">TERESA SALAS <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-004</span></div>
+                    <div class="tc-meta">12 Conjuntos · Vendedor: Vizengo · Tienda 3 · Entrega: Vie 3:00 PM</div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-success"><span class="dot"></span>Contrato</span>
+                    <span class="badge-pill bp-warn"><span class="dot"></span>Diseño Pend.</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Planchado</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Costura</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Entrega</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div class="pipeline-steps">
+                    <div class="step done"><div class="step-circle"><i class="fas fa-file-contract"></i></div><div class="step-label">Contrato</div><div class="step-detail">Completo</div><div class="step-date">06/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-users"></i></div><div class="step-label">Integrantes</div><div class="step-detail">12 registrados</div><div class="step-date">06/07/2025</div></div>
+                    <div class="step active"><div class="step-circle"><i class="fas fa-paint-brush"></i></div><div class="step-label">Diseño</div><div class="step-detail">EN PROCESO</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-tshirt"></i></div><div class="step-label">Planchado</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-cut"></i></div><div class="step-label">Costura</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-box"></i></div><div class="step-label">Entrega</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                </div>
+            </div>
+            <div class="tc-actions">
+                <a href="diseno.html" class="action-btn primary"><i class="fas fa-paint-brush"></i> Subir Diseño</a>
+                <a href="registro-integrantes.html" class="action-btn primary"><i class="fas fa-users"></i> Ver Integrantes</a>
+            </div>
+        </div>
+
+        <!-- PED-005 -->
+        <div class="tracking-card" data-etapa="contrato" data-urgente="false" data-nombre="maria lopez">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">MARIA LOPEZ <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-005</span></div>
+                    <div class="tc-meta">20 Polos · Vendedor: Erick · Tienda 1 · Entrega: Lun 2:00 PM</div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-warn"><span class="dot"></span>Contrato Inc.</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Diseño</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Planchado</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Costura</span>
+                    <span class="badge-pill bp-pending"><span class="dot"></span>Entrega</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div class="pipeline-steps">
+                    <div class="step warn"><div class="step-circle"><i class="fas fa-file-contract"></i></div><div class="step-label">Contrato</div><div class="step-detail">Solo datos</div><div class="step-date">07/07/2025</div></div>
+                    <div class="step active"><div class="step-circle"><i class="fas fa-users"></i></div><div class="step-label">Integrantes</div><div class="step-detail">PENDIENTE</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-paint-brush"></i></div><div class="step-label">Diseño</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-tshirt"></i></div><div class="step-label">Planchado</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-cut"></i></div><div class="step-label">Costura</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                    <div class="step pending"><div class="step-circle"><i class="fas fa-box"></i></div><div class="step-label">Entrega</div><div class="step-detail">Pendiente</div><div class="step-date">—</div></div>
+                </div>
+            </div>
+            <div class="tc-actions">
+                <a href="registro-integrantes.html" class="action-btn warn"><i class="fas fa-users"></i> Registrar Integrantes</a>
+                <a href="ingreso-pedido.html" class="action-btn primary"><i class="fas fa-file-contract"></i> Ver Contrato</a>
+            </div>
+        </div>
+
+        <!-- PED-006 -->
+        <div class="tracking-card" data-etapa="completado" data-urgente="false" data-nombre="jose luis">
+            <div class="tc-header" onclick="toggleCard(this)">
+                <div>
+                    <div class="tc-order-name">JOSE LUIS <span style="font-size:0.75rem;color:var(--muted);font-weight:400;">#PED-006</span></div>
+                    <div class="tc-meta">12 Conjuntos · Vendedor: Erick · Tienda Vizengo · Entrega: Mar 3:00 PM</div>
+                </div>
+                <div class="tc-badges">
+                    <span class="badge-pill bp-purple"><span class="dot"></span>COMPLETADO</span>
+                    <span class="badge-pill bp-success"><span class="dot"></span>Entregado</span>
+                    <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+                </div>
+            </div>
+            <div class="tc-pipeline">
+                <div class="pipeline-steps">
+                    <div class="step done"><div class="step-circle"><i class="fas fa-file-contract"></i></div><div class="step-label">Contrato</div><div class="step-detail">Completo</div><div class="step-date">28/06/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-users"></i></div><div class="step-label">Integrantes</div><div class="step-detail">12 registrados</div><div class="step-date">28/06/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-paint-brush"></i></div><div class="step-label">Diseño</div><div class="step-detail">Completo</div><div class="step-date">30/06/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-tshirt"></i></div><div class="step-label">Planchado</div><div class="step-detail">Completo</div><div class="step-date">01/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-cut"></i></div><div class="step-label">Costura</div><div class="step-detail">Completo</div><div class="step-date">02/07/2025</div></div>
+                    <div class="step done"><div class="step-circle"><i class="fas fa-box"></i></div><div class="step-label">Entrega</div><div class="step-detail">Entregado</div><div class="step-date">03/07/2025</div></div>
+                </div>
+                <div style="margin-top:16px;text-align:center;padding:12px;background:rgba(6,214,160,0.06);border:1px solid rgba(6,214,160,0.2);border-radius:8px;">
+                    <i class="fas fa-check-circle" style="color:var(--success);margin-right:6px;"></i>
+                    <strong style="color:#059669;">Entregado el 03/07/2025</strong> · Tienda Vizengo
+                </div>
+            </div>
+            <div class="tc-actions">
+                <a href="ingreso-pedido.html" class="action-btn primary"><i class="fas fa-file"></i> Ver Contrato</a>
+                <a href="diseno.html" class="action-btn primary"><i class="fas fa-image"></i> Ver Diseño</a>
+            </div>
+        </div>
+
+    </div><!-- /trackingList -->
+</main>
+
+<!-- Modal Entrega -->
+<div class="modal-entrega" id="modalEntrega">
+    <div class="modal-box">
+        <div class="modal-title"><i class="fas fa-box-open" style="color:var(--success);margin-right:8px;"></i>Registrar Entrega</div>
+        <p style="font-size:0.85rem;color:var(--muted);margin-bottom:20px;" id="modalSubtitle">Pedido: —</p>
+        <div class="modal-field">
+            <label class="modal-label">Tipo</label>
+            <select class="modal-input" id="tipoEntrega">
+                <option value="entrega">Entrega en tienda</option>
+                <option value="envio">Envío a domicilio</option>
+            </select>
+        </div>
+        <div class="modal-field">
+            <label class="modal-label">Fecha y hora</label>
+            <input type="datetime-local" class="modal-input" id="fechaEntrega">
+        </div>
+        <div class="modal-field">
+            <label class="modal-label">Observaciones</label>
+            <input type="text" class="modal-input" placeholder="Ej: Recibió el cliente directamente...">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn-confirm" onclick="confirmarEntrega()"><i class="fas fa-check"></i> Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Sesión
+    const rol    = sessionStorage.getItem('vz_rol')    || 'administrador';
+    const nombre = sessionStorage.getItem('vz_nombre') || 'Admin';
+    document.getElementById('userAvatar').textContent = nombre.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = nombre;
+    const roleLabels = { vendedor:'Vendedor', disenador:'Diseñador', administrador:'Administrador' };
+    document.getElementById('userRole').textContent = roleLabels[rol] || rol;
+
+    // Navegación por rol
+    // Administración - solo administrador
+    if (rol === 'administrador') {
+        document.getElementById('nav-usuarios').style.display = 'flex';
+    }
+
+    // Vendedor - mostrar sección y enlaces
+    if (rol === 'vendedor' || rol === 'administrador') {
+        document.getElementById('nav-vendedor-label').style.display = 'block';
+        document.getElementById('nav-ingreso').style.display = 'flex';
+        document.getElementById('nav-integrantes').style.display = 'flex';
+        document.getElementById('nav-entrega').style.display = 'flex';
+    }
+
+    // Diseñador - mostrar sección y enlaces
+    if (rol === 'disenador' || rol === 'administrador') {
+        document.getElementById('nav-disenador-label').style.display = 'block';
+        document.getElementById('nav-diseno').style.display = 'flex';
+        document.getElementById('nav-planchado').style.display = 'flex';
+        document.getElementById('nav-costura').style.display = 'flex';
+    }
+
+    // Ocultar botón "Nuevo Pedido" para diseñadores
+    if (rol === 'disenador') {
+        document.getElementById('btn-nuevo').style.display = 'none';
+    }
+
+    function cerrarSesion() { sessionStorage.clear(); window.location.href = 'login.html'; }
+
+    // Toggle card
+    function toggleCard(header) {
+        const pipeline = header.nextElementSibling;
+        const actions  = pipeline.nextElementSibling;
+        const chevron  = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+        const isOpen   = pipeline.classList.contains('open');
+        pipeline.classList.toggle('open');
+        header.classList.toggle('open');
+        if (chevron) {
+            chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+        }
+    }
+
+    // Filtrar
+    let filtroActivo = 'todos';
+    function filtrar(btn, etapa) {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroActivo = etapa;
+        aplicarFiltros();
+    }
+
+    function buscar(val) { aplicarFiltros(val.toLowerCase()); }
+
+    function aplicarFiltros(busq = '') {
+        document.querySelectorAll('.tracking-card').forEach(card => {
+            const etapa   = card.dataset.etapa;
+            const urgente = card.dataset.urgente === 'true';
+            const nombre  = card.dataset.nombre || '';
+            let visible = true;
+            if (filtroActivo !== 'todos') {
+                if (filtroActivo === 'urgente') visible = urgente;
+                else visible = etapa === filtroActivo;
+            }
+            if (busq && !nombre.includes(busq)) visible = false;
+            card.style.display = visible ? 'block' : 'none';
+        });
+    }
+
+    // Modal entrega
+    let pedidoActivo = '';
+    function abrirModalEntrega(ped, nombre) {
+        pedidoActivo = ped;
+        document.getElementById('modalSubtitle').textContent = `Pedido: ${nombre} (${ped})`;
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('fechaEntrega').value = now.toISOString().slice(0,16);
+        document.getElementById('modalEntrega').classList.add('show');
+    }
+    function cerrarModal() { document.getElementById('modalEntrega').classList.remove('show'); }
+    function confirmarEntrega() {
+        cerrarModal();
+        // Simulación: mostrar éxito
+        const card = document.querySelector(`[data-nombre="luisa marmolejo"]`);
+        if (card) {
+            const badges = card.querySelector('.tc-badges');
+            badges.innerHTML = `
+                <span class="badge-pill bp-purple"><span class="dot"></span>COMPLETADO</span>
+                <span class="badge-pill bp-success"><span class="dot"></span>Entregado</span>
+                <i class="fas fa-chevron-down" style="color:var(--muted);margin-left:8px;"></i>
+            `;
+            card.dataset.etapa = 'completado';
+            card.dataset.urgente = 'false';
+        }
+    }
+
+    // Fecha de entrega actual
+    const now = new Date();
+    const mins = now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+</script>
+</body>
+</html>
