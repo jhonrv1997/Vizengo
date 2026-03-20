@@ -174,52 +174,53 @@
  
         <div class="footer-note">© 2025 VIZENGO · Ropa Deportiva por Pedidos</div>
     </div>
+    <script src="assets/js/app.js"></script>
     <script>
         let rolSeleccionado = 'administrador';
-        
+
         function selectRole(el, rol) {
             document.querySelectorAll('.role-card').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             rolSeleccionado = rol;
         }
-        
-        const credenciales = {
-            'luis':{'pass':'123','rol':'vendedor','nombre':'Luis'},
-            'karina':{'pass':'123','rol':'vendedor','nombre':'Karina'},
-            'carolina':{'pass':'123','rol':'disenador','nombre':'Carolina'},
-            'erick':{'pass':'123','rol':'disenador','nombre':'Erick'},
-            'admin':{'pass':'admin','rol':'administrador','nombre':'Admin'},
-        };
-        
-        function iniciarSesion() {
+
+        async function iniciarSesion() {
             const usuario = document.getElementById('inputUsuario').value.trim().toLowerCase();
             const pass = document.getElementById('inputPassword').value;
             const error = document.getElementById('errorMsg');
-            const user = credenciales[usuario];
+            const btn = document.querySelector('.btn-login');
             
-            if (!user || user.pass !== pass) {
+            if (!usuario || !pass) {
+                error.textContent = 'Ingrese usuario y contraseña';
                 error.classList.add('show');
                 setTimeout(() => error.classList.remove('show'), 3000);
                 return;
             }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verificando...';
+
+            const resultado = await window.vizengo.login(usuario, pass);
             
-            guardarSesion(user.rol, user.nombre);
-            window.location.href = 'dashboard.html';
+            if (resultado.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                error.textContent = resultado.error || 'Credenciales incorrectas';
+                error.classList.add('show');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> INGRESAR';
+                setTimeout(() => error.classList.remove('show'), 3000);
+            }
         }
-        
+
         function demoLogin(rol, nombre) {
-            guardarSesion(rol, nombre);
-            window.location.href = 'dashboard.html';
-        }
-        
-        function guardarSesion(rol, nombre) {
             sessionStorage.setItem('vz_rol', rol);
             sessionStorage.setItem('vz_nombre', nombre);
+            window.location.href = 'dashboard.html';
         }
-        
+
         document.addEventListener('keydown', e => {
             if (e.key === 'Enter') iniciarSesion();
         });
     </script>
-</body>
 </html>
