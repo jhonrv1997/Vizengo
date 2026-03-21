@@ -268,13 +268,13 @@
                         <div class="col-md-4">
                             <div class="field-group">
                                 <label class="field-lbl">Celular</label>
-                                <input type="tel" class="field-ctrl" placeholder="999-999-999">
+                                <input type="tel" id="clienteTelefono" class="field-ctrl" placeholder="999-999-999">
                             </div>
                         </div>
                         <div class="col-12">
                             <div class="field-group" style="margin-bottom:0;">
                                 <label class="field-lbl">Observación General</label>
-                                <textarea class="field-ctrl" rows="2" placeholder="Notas importantes del cliente o pedido..."></textarea>
+                                <textarea id="observacionGeneral" class="field-ctrl" rows="2" placeholder="Notas importantes del cliente o pedido..."></textarea>
                             </div>
                         </div>
                     </div>
@@ -313,7 +313,7 @@
                                         <input type="text" id="camisetaOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
                                     </div>
                                     <div class="field-group" style="margin-bottom:8px;">
-                                        <label class="field-lbl">Tela</label>
+                                        <label class="field-lbl">(Camiseta / Superior) Tela</label>
                                         <select class="field-ctrl" id="camisetaTela" onchange="toggleTelaOtros(this,'camisetaTelaOtros')" style="font-size:.8rem;color:var(--muted);">
                                             <option>Tela: ESPIGA</option><option>Tela: MARATHON</option><option>Tela: DRY</option>
                                             <option>Tela: ALGODON</option><option>Tela: PIQUE</option><option>Tela: SPUM</option>
@@ -347,7 +347,7 @@
                                         <input type="text" id="shortOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
                                     </div>
                                     <div class="field-group" style="margin-bottom:8px;">
-                                        <label class="field-lbl">Tela</label>
+                                        <label class="field-lbl">(Short / Inferior) Tela</label>
                                         <select class="field-ctrl" id="shortTela" onchange="toggleTelaOtros(this,'shortTelaOtros')" style="font-size:.8rem;color:var(--muted);">
                                             <option>Tela: ESPIGA</option><option>Tela: MARATHON</option><option>Tela: DRY</option>
                                             <option>Tela: NOVA</option><option>Tela: FULL LICRA</option><option>Tela: FRENCH TERRY</option><option value="Tela: OTROS">Tela: OTROS</option>
@@ -381,8 +381,8 @@
                                         <input type="text" id="mediasOtros" class="field-ctrl mt-1" placeholder="Especifique..." style="display:none;">
                                     </div>
                                     <div class="field-group" style="margin-bottom:0;">
-                                        <label class="field-lbl">Detalles</label>
-                                        <input type="text" class="field-ctrl" placeholder="Color, tamaño..." style="color:var(--muted);">
+                                        <label class="field-lbl">(Medias / Otros) Detalles</label>
+                                        <input type="text" id="mediasDetalles" class="field-ctrl" placeholder="Color, tamaño..." style="color:var(--muted);">
                                     </div>
                                 </div>
                             </div>
@@ -442,7 +442,7 @@
                         <div class="col-md-6">
                             <div class="kit-box" style="height:100%;">
                                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                                    <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:var(--muted);text-transform:uppercase;"><i class="fas fa-flag" style="margin-right:6px;"></i>Banderolas / Merch</span>
+                                    <span style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:.9rem;color:var(--muted);text-transform:uppercase;"><i class="fas fa-flag" style="margin-right:6px;"></i>(Banderolas y Merchandising)</span>
                                     <button class="btn-v btn-outline-v btn-sm-v" onclick="agregarMerch()"><i class="fas fa-plus"></i> Agregar</button>
                                 </div>
                                 <div class="row g-2">
@@ -472,8 +472,8 @@
                                         </div>
                                     </div>
                                     <div class="col-12">
-                                        <label class="field-lbl">Especificaciones</label>
-                                        <input type="text" class="field-ctrl" placeholder="Ej: 1.5m x 3m, fondo azul...">
+                                        <label class="field-lbl">(Banderolas y Merchandising) Especificaciones</label>
+                                        <input type="text" id="merchEspecificaciones" class="field-ctrl" placeholder="Ej: 1.5m x 3m, fondo azul...">
                                     </div>
                                 </div>
                             </div>
@@ -599,7 +599,8 @@
 
                     <div class="field-group">
                         <label class="field-lbl"><i class="far fa-calendar-check" style="color:var(--primary);margin-right:4px;"></i>Fecha y Hora de Entrega</label>
-                        <input type="datetime-local" class="field-ctrl" id="fechaEntregaEstimada" style="border-color:var(--primary);">
+                        <input type="date" class="field-ctrl mb-2" id="fechaEntregaEstimada" style="border-color:var(--primary);">
+                        <input type="time" class="field-ctrl" id="horaEntrega" style="border-color:var(--primary);">
                     </div>
 
                     <div style="height:1px;background:var(--border);margin:16px 0;"></div>
@@ -782,6 +783,66 @@
             alert('⚠️ Debe ingresar un adelanto mayor a 0 para guardar el pedido.');
             return;
         }
+        
+        // Recopilar todos los datos del formulario
+        const pedidoData = {
+            // Datos del Contrato
+            tipo_contrato: document.getElementById('tipoContratoSelect').value,
+            lugar_entrega: document.getElementById('lugarEntregaSelect').value,
+            direccion_envio: document.getElementById('direccionEnvio').value,
+            vendedor_nombre: document.getElementById('vendedorSelect').value,
+            cliente_nombre: document.getElementById('clienteInput').style.display !== 'none' ? 
+                             document.getElementById('clienteInput').value : 
+                             document.getElementById('clienteSelect').value,
+            cliente_telefono: document.getElementById('clienteTelefono').value,
+            observacion_general: document.getElementById('observacionGeneral').value,
+            
+            // Proforma del Pedido - Camiseta/Superior
+            camiseta_tipo: document.getElementById('camisetaSelect').value === 'OTROS' ? 
+                          document.getElementById('camisetaOtros').value : 
+                          document.getElementById('camisetaSelect').value,
+            camiseta_tela: document.getElementById('camisetaTela').value === 'Tela: OTROS' ? 
+                          document.getElementById('camisetaTelaOtros').value : 
+                          document.getElementById('camisetaTela').value,
+            camiseta_talla_principal: document.getElementById('camisetaTalla').value,
+            
+            // Proforma del Pedido - Short/Inferior
+            short_tipo: document.getElementById('shortSelect').value === 'OTROS' ? 
+                       document.getElementById('shortOtros').value : 
+                       document.getElementById('shortSelect').value,
+            short_tela: document.getElementById('shortTela').value === 'Tela: OTROS' ? 
+                       document.getElementById('shortTelaOtros').value : 
+                       document.getElementById('shortTela').value,
+            short_talla: document.getElementById('shortTalla').value,
+            
+            // Proforma del Pedido - Medias/Otros
+            medias_tipo: document.getElementById('mediasSelect').value === 'OTROS' ? 
+                        document.getElementById('mediasOtros').value : 
+                        document.getElementById('mediasSelect').value,
+            medias_detalles: document.getElementById('mediasDetalles').value,
+            
+            // Proforma del Pedido - Banderolas y Merchandising
+            banderolas_merch_articulo: document.getElementById('merchArticulo').value,
+            banderolas_merch_regalo: document.getElementById('regaloCheck').checked,
+            banderolas_merch_especificaciones: document.getElementById('merchEspecificaciones').value,
+            
+            // Observaciones de Diseño
+            observaciones_diseno: document.getElementById('observacionesDiseno').value,
+            
+            // Fecha y Hora de Entrega
+            fecha_entrega: document.getElementById('fechaEntregaEstimada').value,
+            hora_entrega: document.getElementById('horaEntrega').value,
+            
+            // Totales
+            cantidad_total: parseInt(document.getElementById('kitCantidad').value) || 0,
+            precio_unitario: parseFloat(document.getElementById('kitPrecio').value) || 0,
+            anticipo: adelanto,
+            saldo_pendiente: totalPagar - adelanto
+        };
+        
+        console.log('Guardando pedido:', pedidoData);
+        
+        // Simulación de guardado exitoso
         alert('Pedido guardado correctamente.\n\nPróximo paso: Registrar integrantes del equipo.');
         window.location.href = 'registro-integrantes.html';
     }

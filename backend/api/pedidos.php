@@ -199,26 +199,49 @@ function crearPedido($db, $usuario) {
         $codigoPedido = 'PED-' . str_pad($maxId + 1, 3, '0', STR_PAD_LEFT);
         
         $sql = "INSERT INTO pedidos (codigo_pedido, cliente_nombre, cliente_contacto, cliente_telefono, cliente_email, 
-                                     tipo_prenda, cantidad_total, precio_unitario, anticipo, saldo_pendiente, 
-                                     fecha_entrega, observaciones, estado, vendedor_id) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                                     tipo_contrato, lugar_entrega, direccion_envio, vendedor_nombre,
+                                     camiseta_tipo, camiseta_tela, camiseta_talla_principal,
+                                     short_tipo, short_tela, short_talla,
+                                     medias_tipo, medias_detalles,
+                                     banderolas_merch_articulo, banderolas_merch_regalo, banderolas_merch_especificaciones,
+                                     observacion_general, observaciones_diseno,
+                                     hora_entrega, fecha_entrega,
+                                     cantidad_total, precio_unitario, anticipo, saldo_pendiente, 
+                                     estado, vendedor_id) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $saldoPendiente = ($data['cantidad_total'] * $data['precio_unitario']) - ($data['anticipo'] ?? 0);
         
         $stmt = $db->prepare($sql);
         $stmt->execute([
             $codigoPedido,
-            $data['cliente_nombre'],
-            $data['cliente_contacto'] ?? $data['cliente_nombre'],
+            $data['cliente_nombre'] ?? '',
+            $data['cliente_nombre'] ?? '',
             $data['cliente_telefono'] ?? '',
             $data['cliente_email'] ?? '',
-            $data['tipo_prenda'],
-            $data['cantidad_total'],
-            $data['precio_unitario'],
+            $data['tipo_contrato'] ?? 'PEDIDO',
+            $data['lugar_entrega'] ?? '',
+            $data['direccion_envio'] ?? '',
+            $data['vendedor_nombre'] ?? '',
+            $data['camiseta_tipo'] ?? '',
+            $data['camiseta_tela'] ?? '',
+            $data['camiseta_talla_principal'] ?? '',
+            $data['short_tipo'] ?? '',
+            $data['short_tela'] ?? '',
+            $data['short_talla'] ?? '',
+            $data['medias_tipo'] ?? '',
+            $data['medias_detalles'] ?? '',
+            $data['banderolas_merch_articulo'] ?? '',
+            $data['banderolas_merch_regalo'] ?? false,
+            $data['banderolas_merch_especificaciones'] ?? '',
+            $data['observacion_general'] ?? '',
+            $data['observaciones_diseno'] ?? '',
+            $data['hora_entrega'] ?? null,
+            $data['fecha_entrega'] ?? null,
+            $data['cantidad_total'] ?? 0,
+            $data['precio_unitario'] ?? 0,
             $data['anticipo'] ?? 0,
             $saldoPendiente,
-            $data['fecha_entrega'] ?? null,
-            $data['observaciones'] ?? '',
             'contrato',
             $usuario['id']
         ]);
